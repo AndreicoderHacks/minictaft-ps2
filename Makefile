@@ -20,12 +20,12 @@ LDFLAGS = -nostartfiles \
           -L$(PS2SDK)/ee/lib \
           -L$(GSKIT)/lib
 
-LIBS = -lgskit -ldmakit -lpad -lc -lkernel -lcglue -lm -lgcc
+LIBS = -lgskit -ldmakit -lpad -lcglue -lkernel -lc -lm -lgcc
 
 all: $(EE_BIN)
 
 $(EE_BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(PS2SDK)/ee/startup/crt0.o $^ $(LIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
