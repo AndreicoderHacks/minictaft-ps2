@@ -9,18 +9,16 @@ jobs:
         run: |
           curl -o ps2dev.tar.gz -L https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
           sudo tar -xzf ps2dev.tar.gz -C /usr/local
-          ls /usr/local/ps2dev/
-          find /usr/local -name "*ps2-elf-gcc*"
+      - name: Find startup files
+        run: |
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
+          find /usr/local/ps2dev -name "crt0*"
+          find /usr/local/ps2dev/ps2sdk/ee/startup -type f
       - name: Build game
         env:
           PS2DEV: /usr/local/ps2dev
           PS2SDK: /usr/local/ps2dev/ps2sdk
           GSKIT: /usr/local/ps2dev/gsKit
-       run: |
-          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
-          find /usr/local/ps2dev -name "crt0*"
-          find /usr/local/ps2dev -name "*.o" | head -20
-          make
         run: |
           export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
           make
