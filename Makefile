@@ -20,7 +20,7 @@ LDFLAGS = -nostartfiles \
           -L$(PS2SDK)/ee/lib \
           -L$(GSKIT)/lib
 
-LIBS = -lgskit -ldmakit -lpad -lc -lkernel -lsyscall -lcglue -lm -lgcc
+LIBS = -lgskit -ldmakit -lpad -lc -lkernel -lcglue -lm -lgcc
 
 all: $(EE_BIN)
 
