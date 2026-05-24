@@ -13,20 +13,17 @@ jobs:
         run: |
           curl -o ps2dev.tar.gz -L https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
           sudo tar -xzf ps2dev.tar.gz --strip-components 1 -C /usr/local
-          echo "/usr/local/ps2dev/bin" >> $GITHUB_PATH
-          echo "/usr/local/ps2dev/ee/bin" >> $GITHUB_PATH
-          echo "/usr/local/ps2dev/iop/bin" >> $GITHUB_PATH
-          echo "/usr/local/ps2dev/dvp/bin" >> $GITHUB_PATH
-          echo "/usr/local/ps2dev/ps2sdk/bin" >> $GITHUB_PATH
-      - name: Fix missing Makefile helpers
-        run: |
           sudo mkdir -p /usr/local/ps2dev/ps2sdk/samples
           curl -o Makefile.pref -L https://raw.githubusercontent.com/ps2dev/ps2sdk/master/samples/Makefile.pref_sample
           curl -o Makefile.eeglobal -L https://raw.githubusercontent.com/ps2dev/ps2sdk/master/samples/Makefile.eeglobal_sample
           sudo mv Makefile.pref /usr/local/ps2dev/ps2sdk/samples/Makefile.pref
           sudo mv Makefile.eeglobal /usr/local/ps2dev/ps2sdk/samples/Makefile.eeglobal
       - name: Build game
-        run: make
+        run: |
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
+          which mips64r5900el-ps2-elf-gcc || echo "NOT FOUND"
+          ls /usr/local/ps2dev/ee/bin/ || echo "DIR EMPTY"
+          make
       - uses: actions/upload-artifact@v4
         with:
           name: minicraft-elf
