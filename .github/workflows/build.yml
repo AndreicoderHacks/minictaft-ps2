@@ -16,6 +16,11 @@ jobs:
           PS2DEV: /usr/local/ps2dev
           PS2SDK: /usr/local/ps2dev/ps2sdk
           GSKIT: /usr/local/ps2dev/gsKit
+       run: |
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
+          find /usr/local/ps2dev -name "crt0*"
+          find /usr/local/ps2dev -name "*.o" | head -20
+          make
         run: |
           export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
           make
