@@ -1,9 +1,7 @@
-// render.c - Rendering via gsKit filled rectangles (pixel art style)
-// All graphics are drawn with colored rectangles - no texture files needed!
+// render.c - Rendering via gsKit filled rectangles
 #include "minicraft.h"
 
-// ---- Minimal bitmap font (5x7, ASCII 32-127) ----
-// Each char is 5 bytes, each byte is a row of 5 bits
+// ---- Minimal bitmap font 5x5 ----
 static const u8 font5x7[][5] = {
     {0x00,0x00,0x00,0x00,0x00}, // 32 space
     {0x04,0x04,0x04,0x00,0x04}, // 33 !
@@ -64,51 +62,51 @@ static const u8 font5x7[][5] = {
     {0x11,0x0A,0x04,0x0A,0x11}, // 88 X
     {0x11,0x0A,0x04,0x04,0x04}, // 89 Y
     {0x1F,0x02,0x04,0x08,0x1F}, // 90 Z
-    // lowercase (simplified)
-    {0x00,0x0E,0x11,0x1F,0x11}, // 97 a -> just reuse uppercase for simplicity
-    {0x10,0x1E,0x11,0x11,0x1E}, // 98 b
-    {0x00,0x0E,0x10,0x10,0x0E}, // 99 c
-    {0x01,0x0F,0x11,0x11,0x0F}, // 100 d
-    {0x0E,0x11,0x1F,0x10,0x0E}, // 101 e
-    {0x06,0x08,0x1E,0x08,0x08}, // 102 f
-    {0x0F,0x11,0x0F,0x01,0x0E}, // 103 g
-    {0x10,0x1E,0x11,0x11,0x11}, // 104 h
-    {0x04,0x00,0x04,0x04,0x04}, // 105 i
-    {0x02,0x00,0x02,0x12,0x0C}, // 106 j
-    {0x10,0x12,0x1C,0x12,0x11}, // 107 k
-    {0x0C,0x04,0x04,0x04,0x0E}, // 108 l
-    {0x00,0x1B,0x15,0x15,0x11}, // 109 m
-    {0x00,0x1E,0x11,0x11,0x11}, // 110 n
-    {0x00,0x0E,0x11,0x11,0x0E}, // 111 o
-    {0x00,0x1E,0x11,0x1E,0x10}, // 112 p
-    {0x00,0x0F,0x11,0x0F,0x01}, // 113 q
-    {0x00,0x16,0x19,0x10,0x10}, // 114 r
-    {0x00,0x0E,0x0C,0x02,0x1E}, // 115 s
-    {0x08,0x1E,0x08,0x08,0x06}, // 116 t
-    {0x00,0x11,0x11,0x11,0x0F}, // 117 u
-    {0x00,0x11,0x11,0x0A,0x04}, // 118 v
-    {0x00,0x11,0x15,0x15,0x0A}, // 119 w
-    {0x00,0x11,0x0A,0x0A,0x11}, // 120 x
-    {0x00,0x11,0x0F,0x01,0x0E}, // 121 y
-    {0x00,0x1F,0x04,0x08,0x1F}, // 122 z
+    {0x00,0x0E,0x11,0x1F,0x11}, // 91 = a
+    {0x10,0x1E,0x11,0x11,0x1E}, // 92 = b
+    {0x00,0x0E,0x10,0x10,0x0E}, // 93 = c
+    {0x01,0x0F,0x11,0x11,0x0F}, // 94 = d
+    {0x0E,0x11,0x1F,0x10,0x0E}, // 95 = e
+    {0x06,0x08,0x1E,0x08,0x08}, // 96 = f
+    {0x0F,0x11,0x0F,0x01,0x0E}, // 97 = g
+    {0x10,0x1E,0x11,0x11,0x11}, // 98 = h
+    {0x04,0x00,0x04,0x04,0x04}, // 99 = i
+    {0x02,0x00,0x02,0x12,0x0C}, // 100 = j
+    {0x10,0x12,0x1C,0x12,0x11}, // 101 = k
+    {0x0C,0x04,0x04,0x04,0x0E}, // 102 = l
+    {0x00,0x1B,0x15,0x15,0x11}, // 103 = m
+    {0x00,0x1E,0x11,0x11,0x11}, // 104 = n
+    {0x00,0x0E,0x11,0x11,0x0E}, // 105 = o
+    {0x00,0x1E,0x11,0x1E,0x10}, // 106 = p
+    {0x00,0x0F,0x11,0x0F,0x01}, // 107 = q
+    {0x00,0x16,0x19,0x10,0x10}, // 108 = r
+    {0x00,0x0E,0x0C,0x02,0x1E}, // 109 = s
+    {0x08,0x1E,0x08,0x08,0x06}, // 110 = t
+    {0x00,0x11,0x11,0x11,0x0F}, // 111 = u
+    {0x00,0x11,0x11,0x0A,0x04}, // 112 = v
+    {0x00,0x11,0x15,0x15,0x0A}, // 113 = w
+    {0x00,0x11,0x0A,0x0A,0x11}, // 114 = x
+    {0x00,0x11,0x0F,0x01,0x0E}, // 115 = y
+    {0x00,0x1F,0x04,0x08,0x1F}, // 116 = z
 };
+#define FONT_COUNT 117
 
 // ---- Draw helpers ----
 void draw_rect(GSGLOBAL *g, int x, int y, int w, int h, u64 color) {
+    if (x >= SCREEN_W || y >= SCREEN_H) return;
+    if (x + w < 0 || y + h < 0) return;
+    if (w <= 0 || h <= 0) return;
     gsKit_prim_sprite(g,
         (float)x, (float)y,
-        (float)(x+w), (float)(y+h),
+        (float)(x + w), (float)(y + h),
         1, color);
 }
 
 void draw_char(GSGLOBAL *g, char c, int x, int y, u64 color) {
     int idx = -1;
-    if (c >= 32 && c <= 90) {
-        idx = c - 32;
-    } else if (c >= 97 && c <= 122) {
-        idx = (c - 97) + 59;
-    }
-    if (idx < 0 || idx >= 85) return;
+    if (c >= 32 && c <= 90)       idx = c - 32;
+    else if (c >= 97 && c <= 122) idx = (c - 97) + 59;
+    if (idx < 0 || idx >= FONT_COUNT) return;
     const u8 *glyph = font5x7[idx];
     for (int row = 0; row < 5; row++) {
         for (int col = 0; col < 5; col++) {
@@ -118,6 +116,7 @@ void draw_char(GSGLOBAL *g, char c, int x, int y, u64 color) {
         }
     }
 }
+
 void draw_text(GSGLOBAL *g, const char *str, int x, int y, u64 color) {
     int cx = x;
     while (*str) {
@@ -127,12 +126,12 @@ void draw_text(GSGLOBAL *g, const char *str, int x, int y, u64 color) {
     }
 }
 
-// ---- Utility helpers ----
-float brightness_day(int dayTime) {
-    // 0-2400 = day (1.0), 2400-3600 = dusk (1.0->0.3), 3600-4800 = night (0.3)
-    if (dayTime < 2400) return 1.0f;
-    if (dayTime < 3600) return 1.0f - 0.7f * (dayTime - 2400) / 1200.0f;
-    return 0.3f;
+// ---- Utility ----
+int brightness_day(int dayTime) {
+    // Returns 0-100 (integer, no float)
+    if (dayTime < 2400) return 100;
+    if (dayTime < 3600) return 100 - (dayTime - 2400) * 70 / 1200;
+    return 30;
 }
 
 const char* item_getName(int item) {
@@ -168,27 +167,18 @@ u64 item_getColor(int item) {
         case ITEM_GOLD_TOOL:    return COL_YELLOW;
         case ITEM_GEM_SWORD:
         case ITEM_GEM_TOOL:     return COL_CYAN;
-        case ITEM_WORKBENCH:    return COL_BROWN;
-        case ITEM_FURNACE:      return COL_GRAY;
-        case ITEM_LANTERN:      return COL_YELLOW;
         default:                return COL_WHITE;
     }
 }
 
 // ---- TILE RENDERER ----
-// Each tile is drawn as a pattern of colored rectangles
-void render_tile(GSGLOBAL *g, int tile, int px, int py, float brightness) {
-    // Apply brightness: scale RGB (simplified - we just use a dark overlay)
-    u64 col;
+void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
     int x = px, y = py, s = TILE_SIZE;
+    u64 col;
 
     switch(tile) {
         case TILE_GRASS:
-            col = COL_DARK_GREEN;
-            draw_rect(g, x, y, s, s, col);
-            // Small detail
-            if (((px/s + py/s) & 3) == 0)
-                draw_rect(g, x+4, y+3, 2, 3, COL_GREEN);
+            draw_rect(g, x, y, s, s, COL_DARK_GREEN);
             break;
         case TILE_DIRT:
             draw_rect(g, x, y, s, s, COL_DIRT_COL);
@@ -197,19 +187,12 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, float brightness) {
             draw_rect(g, x, y, s, s, COL_SAND);
             break;
         case TILE_WATER:
-            col = GS_SETREG_RGBAQ(
-                30 + (int)(10 * brightness),
-                80 + (int)(20 * brightness),
-                200 + (int)(20 * brightness), 0x80, 0);
-            draw_rect(g, x, y, s, s, col);
-            // Wave detail
-            draw_rect(g, x+2, y+6, 5, 2, COL_LIGHT_BLUE);
-            draw_rect(g, x+9, y+11, 5, 2, COL_LIGHT_BLUE);
+            draw_rect(g, x, y, s, s, COL_BLUE);
+            draw_rect(g, x+2, y+6, 6, 2, COL_LIGHT_BLUE);
             break;
         case TILE_LAVA:
             draw_rect(g, x, y, s, s, COL_LAVA_COL);
             draw_rect(g, x+3, y+5, 4, 3, COL_ORANGE);
-            draw_rect(g, x+9, y+10, 4, 3, COL_ORANGE);
             break;
         case TILE_STONE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
@@ -218,67 +201,43 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, float brightness) {
             break;
         case TILE_HARDROCK:
             draw_rect(g, x, y, s, s, COL_DARK_GRAY);
-            draw_rect(g, x+2, y+2, s-4, s-4, GS_SETREG_RGBAQ(80,80,80,0x80,0));
             break;
         case TILE_TREE:
             draw_rect(g, x, y, s, s, COL_DARK_GREEN);
-            // trunk
             draw_rect(g, x+6, y+8, 4, 8, COL_BROWN);
-            // leaves
-            draw_rect(g, x+2, y+2, 12, 10, COL_GREEN);
-            break;
-        case TILE_WOOD:
-            draw_rect(g, x, y, s, s, COL_BROWN);
-            draw_rect(g, x+2, y+2, s-4, s-4, GS_SETREG_RGBAQ(160,110,50,0x80,0));
+            draw_rect(g, x+2, y+2, 12, 8, COL_GREEN);
             break;
         case TILE_FLOWER:
             draw_rect(g, x, y, s, s, COL_DARK_GREEN);
-            // flower
             draw_rect(g, x+6, y+4, 4, 4, GS_SETREG_RGBAQ(255,120,180,0x80,0));
-            draw_rect(g, x+7, y+5, 2, 2, COL_YELLOW);
-            draw_rect(g, x+7, y+9, 1, 5, COL_GREEN);
             break;
         case TILE_CACTUS:
             draw_rect(g, x, y, s, s, COL_SAND);
             draw_rect(g, x+6, y+2, 4, 12, COL_DARK_GREEN);
-            draw_rect(g, x+3, y+6, 3, 3, COL_DARK_GREEN);
-            draw_rect(g, x+10, y+8, 3, 3, COL_DARK_GREEN);
             break;
         case TILE_ROCK_ORE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
             draw_rect(g, x+3, y+3, 4, 4, COL_GRAY);
-            draw_rect(g, x+9, y+8, 4, 4, COL_GRAY);
             break;
         case TILE_IRON_ORE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
             draw_rect(g, x+3, y+3, 4, 4, GS_SETREG_RGBAQ(200,160,120,0x80,0));
-            draw_rect(g, x+9, y+8, 4, 4, GS_SETREG_RGBAQ(200,160,120,0x80,0));
             break;
         case TILE_GOLD_ORE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
             draw_rect(g, x+3, y+3, 4, 4, COL_YELLOW);
-            draw_rect(g, x+9, y+8, 4, 4, COL_YELLOW);
             break;
         case TILE_GEM_ORE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
             draw_rect(g, x+3, y+3, 4, 4, COL_CYAN);
-            draw_rect(g, x+9, y+8, 4, 4, COL_CYAN);
             break;
         case TILE_STAIRS_DOWN:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
-            // Arrow down
-            draw_rect(g, x+7, y+4, 2, 6, COL_DARK_GRAY);
-            draw_rect(g, x+4, y+8, 8, 2, COL_DARK_GRAY);
-            draw_rect(g, x+5, y+10, 6, 2, COL_DARK_GRAY);
-            draw_rect(g, x+7, y+12, 2, 2, COL_DARK_GRAY);
+            draw_rect(g, x+6, y+4, 4, 8, COL_DARK_GRAY);
             break;
         case TILE_STAIRS_UP:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
-            // Arrow up
-            draw_rect(g, x+7, y+4, 2, 2, COL_DARK_GRAY);
-            draw_rect(g, x+5, y+6, 6, 2, COL_DARK_GRAY);
-            draw_rect(g, x+4, y+8, 8, 2, COL_DARK_GRAY);
-            draw_rect(g, x+7, y+10, 2, 4, COL_DARK_GRAY);
+            draw_rect(g, x+6, y+4, 4, 8, COL_WHITE);
             break;
         case TILE_CLOUD:
             draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(150,180,255,0x80,0));
@@ -289,96 +248,72 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, float brightness) {
             break;
         case TILE_WORKBENCH:
             draw_rect(g, x, y, s, s, COL_BROWN);
-            draw_rect(g, x+2, y+2, s-4, 4, GS_SETREG_RGBAQ(160,90,30,0x80,0));
-            draw_rect(g, x+2, y+8, s-4, 2, COL_DARK_GRAY);
+            draw_rect(g, x+2, y+2, s-4, 4, COL_DARK_GRAY);
             break;
         case TILE_FURNACE:
             draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+4, y+4, 8, 8, COL_DARK_GRAY);
-            draw_rect(g, x+5, y+5, 6, 6, COL_LAVA_COL);
+            draw_rect(g, x+4, y+4, 8, 8, COL_LAVA_COL);
             break;
         case TILE_FARMLAND:
             draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(100,60,20,0x80,0));
-            draw_rect(g, x+4, y, 2, s, GS_SETREG_RGBAQ(80,40,10,0x80,0));
             break;
         case TILE_WHEAT:
             draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(100,60,20,0x80,0));
-            draw_rect(g, x+4, y+2, 2, 10, GS_SETREG_RGBAQ(220,200,50,0x80,0));
-            draw_rect(g, x+2, y+2, 3, 3, COL_DARK_GREEN);
-            draw_rect(g, x+11, y+4, 3, 3, COL_DARK_GREEN);
+            draw_rect(g, x+4, y+2, 2, 10, COL_YELLOW);
             break;
         case TILE_PORTAL:
             draw_rect(g, x, y, s, s, COL_BLACK);
             draw_rect(g, x+2, y+2, s-4, s-4, COL_PURPLE);
-            draw_rect(g, x+5, y+5, 6, 6, GS_SETREG_RGBAQ(180,80,255,0x80,0));
             break;
         default:
             draw_rect(g, x, y, s, s, COL_DARK_GRAY);
             break;
     }
 
-    // Night darkening overlay
-    if (brightness < 1.0f) {
-        int alpha = (int)((1.0f - brightness) * 96);
-        if (alpha > 96) alpha = 96;
-        u64 night = GS_SETREG_RGBAQ(0, 0, 30, alpha, 0);
-        draw_rect(g, x, y, s, s, night);
+    // Night darkening (simple - just a dark rect if night)
+    if (bright < 70) {
+        draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(0,0,20,0x40,0));
     }
 }
 
 // ---- ENTITY RENDERER ----
 void render_entity(GSGLOBAL *g, Entity *e, int camX, int camY) {
     int sx = e->x - camX + SCREEN_W/2;
-    int sy = e->y - camY + SCREEN_H/2 - 32; // viewport offset for HUD
-    int s  = TILE_SIZE - 2;
+    int sy = e->y - camY + (SCREEN_H-40)/2;
 
-    // Flash red when hurt
+    // Skip if offscreen
+    if (sx < -20 || sx > SCREEN_W+20) return;
+    if (sy < -20 || sy > SCREEN_H+20) return;
+
     u64 mainColor;
     int isHurt = (e->hurtTime > 0 && (e->hurtTime & 2));
 
     switch(e->type) {
         case ENT_ZOMBIE:
             mainColor = isHurt ? COL_RED : GS_SETREG_RGBAQ(40,120,40,0x80,0);
-            // Body
             draw_rect(g, sx-5, sy-6, 10, 12, mainColor);
-            // Head
             draw_rect(g, sx-4, sy-12, 8, 8, GS_SETREG_RGBAQ(60,160,60,0x80,0));
-            // Eyes
             draw_rect(g, sx-2, sy-10, 2, 2, COL_RED);
             draw_rect(g, sx+2, sy-10, 2, 2, COL_RED);
             break;
-
         case ENT_SLIME:
             mainColor = isHurt ? COL_RED : GS_SETREG_RGBAQ(30,160,30,0x80,0);
-            // Blob shape
             draw_rect(g, sx-6, sy-4, 12, 8, mainColor);
             draw_rect(g, sx-4, sy-6, 8, 10, mainColor);
-            // Eyes
-            draw_rect(g, sx-3, sy-3, 2, 2, COL_WHITE);
-            draw_rect(g, sx+1, sy-3, 2, 2, COL_WHITE);
             break;
-
         case ENT_AIR_WIZARD:
             mainColor = isHurt ? COL_RED : COL_PURPLE;
-            // Robe
             draw_rect(g, sx-8, sy-6, 16, 14, mainColor);
-            // Head
             draw_rect(g, sx-5, sy-14, 10, 10, GS_SETREG_RGBAQ(200,180,140,0x80,0));
-            // Hat
-            draw_rect(g, sx-5, sy-18, 10, 6, COL_PURPLE);
-            draw_rect(g, sx-3, sy-22, 6, 6, COL_PURPLE);
-            // Eyes
-            draw_rect(g, sx-3, sy-11, 2, 3, GS_SETREG_RGBAQ(255,100,255,0x80,0));
-            draw_rect(g, sx+2, sy-11, 2, 3, GS_SETREG_RGBAQ(255,100,255,0x80,0));
-            // Health bar above
+            // Health bar
             {
                 int barW = 32;
                 int hp = (e->health * barW) / e->maxHealth;
-                draw_rect(g, sx - barW/2, sy-26, barW, 4, COL_DARK_GRAY);
-                draw_rect(g, sx - barW/2, sy-26, hp,   4, COL_GREEN);
+                if (hp < 0) hp = 0;
+                draw_rect(g, sx-barW/2, sy-26, barW, 4, COL_DARK_GRAY);
+                draw_rect(g, sx-barW/2, sy-26, hp, 4, COL_GREEN);
             }
             break;
-
         default:
             draw_rect(g, sx-4, sy-4, 8, 8, COL_WHITE);
             break;
@@ -390,68 +325,39 @@ void render_hud(GSGLOBAL *g, GameState *gs) {
     Entity *p = &gs->player;
     int y = SCREEN_H - 40;
 
-    // Black bar background
     draw_rect(g, 0, y, SCREEN_W, 40, COL_BLACK);
     draw_rect(g, 0, y, SCREEN_W, 1, COL_DARK_GRAY);
 
-    // Health hearts
+    // Health
     for (int i = 0; i < p->maxHealth; i++) {
         u64 c = (i < p->health) ? COL_RED : COL_DARK_GRAY;
-        draw_rect(g, 8 + i * 12, y + 6, 10, 10, c);
+        draw_rect(g, 8 + i*12, y+6, 10, 10, c);
     }
 
     // Inventory slots
     for (int i = 0; i < INV_SIZE; i++) {
         int sx = SCREEN_W/2 - (INV_SIZE*26)/2 + i*26;
         int sy = y + 6;
-        // Slot background
         u64 slotCol = (i == gs->selectedSlot) ? COL_YELLOW : COL_DARK_GRAY;
         draw_rect(g, sx, sy, 22, 22, slotCol);
         draw_rect(g, sx+1, sy+1, 20, 20, COL_BLACK);
-
         if (gs->inventory[i].type != ITEM_NONE) {
-            // Item icon (colored square with count)
             draw_rect(g, sx+3, sy+3, 14, 14, item_getColor(gs->inventory[i].type));
-            if (gs->inventory[i].count > 1) {
-                char buf[4];
-                buf[0] = '0' + (gs->inventory[i].count / 10);
-                buf[1] = '0' + (gs->inventory[i].count % 10);
-                buf[2] = 0;
-                draw_text(g, buf, sx+2, sy+12, COL_WHITE);
-            }
         }
     }
 
-    // Current item name
-    int sel = gs->selectedSlot;
-    if (gs->inventory[sel].type != ITEM_NONE) {
-        draw_text(g, item_getName(gs->inventory[sel].type), SCREEN_W - 160, y + 14, COL_WHITE);
-    }
-
-    // Day/night indicator
-    {
-        char timeStr[16];
-        int day = gs->dayTime < 2400 ? 1 : 0;
-        timeStr[0] = day ? 'D' : 'N';
-        timeStr[1] = 'A';
-        timeStr[2] = day ? 'Y' : 'I';
-        timeStr[3] = ' ';
-        timeStr[4] = 0;
-        draw_text(g, day ? "DAY" : "NIGHT", 8, y - 16, day ? COL_YELLOW : COL_LIGHT_BLUE);
-    }
-
-    // Level indicator
-    static const char *levelNames[] = { "Surface","Cave 1","Cave 2","Cave 3","Sky" };
+    // Level name
+    static const char *levelNames[] = {"Surface","Cave 1","Cave 2","Cave 3","Sky"};
     if (gs->currentLevel < NUM_LEVELS)
-        draw_text(g, levelNames[gs->currentLevel], SCREEN_W/2 - 24, 8, COL_WHITE);
+        draw_text(g, levelNames[gs->currentLevel], SCREEN_W/2-30, 8, COL_WHITE);
+
+    // Day/night
+    draw_text(g, (gs->dayTime < 2400) ? "DAY" : "NIGHT",
+              8, y-16, (gs->dayTime < 2400) ? COL_YELLOW : COL_LIGHT_BLUE);
 }
 
-// ---- INVENTORY SCREEN ----
+// ---- INVENTORY ----
 void render_inventory(GSGLOBAL *g, GameState *gs) {
-    // Dark overlay
-    for (int y2 = 0; y2 < SCREEN_H; y2 += 8)
-        draw_rect(g, 0, y2, SCREEN_W, 4, GS_SETREG_RGBAQ(0,0,0,96,0));
-
     int bx = SCREEN_W/2 - 120;
     int by = SCREEN_H/2 - 80;
     draw_rect(g, bx, by, 240, 160, COL_DARK_GRAY);
@@ -459,24 +365,22 @@ void render_inventory(GSGLOBAL *g, GameState *gs) {
     draw_text(g, "INVENTORY", bx+60, by+8, COL_YELLOW);
 
     for (int i = 0; i < INV_SIZE; i++) {
-        int sx = bx + 10 + (i % 3) * 75;
-        int sy = by + 30 + (i / 3) * 40;
-        u64 slotCol = (i == gs->selectedSlot) ? COL_YELLOW : COL_DARK_GRAY;
-        draw_rect(g, sx, sy, 65, 30, slotCol);
-        draw_rect(g, sx+1, sy+1, 63, 28, COL_BLACK);
+        int sx2 = bx + 10 + (i%3)*75;
+        int sy2 = by + 30 + (i/3)*40;
+        draw_rect(g, sx2, sy2, 65, 30,
+            (i == gs->selectedSlot) ? COL_YELLOW : COL_DARK_GRAY);
+        draw_rect(g, sx2+1, sy2+1, 63, 28, COL_BLACK);
         if (gs->inventory[i].type != ITEM_NONE) {
-            draw_rect(g, sx+3, sy+3, 14, 14, item_getColor(gs->inventory[i].type));
-            draw_text(g, item_getName(gs->inventory[i].type), sx+20, sy+8, COL_WHITE);
-            if (gs->inventory[i].count > 1) {
-                char buf[8] = { '0'+(gs->inventory[i].count/10), '0'+(gs->inventory[i].count%10), 0 };
-                draw_text(g, buf, sx+3, sy+17, COL_YELLOW);
-            }
+            draw_rect(g, sx2+3, sy2+3, 14, 14, item_getColor(gs->inventory[i].type));
+            draw_text(g, item_getName(gs->inventory[i].type), sx2+20, sy2+8, COL_WHITE);
         }
     }
-    draw_text(g, "Triangle=Close  Cross=Use", bx+10, by+142, COL_GRAY);
+    draw_text(g, "Tri=Close", bx+70, by+142, COL_GRAY);
+
+    if (input_pressed(gs, PAD_TRIANGLE)) gs->state = STATE_PLAYING;
 }
 
-// ---- CRAFTING SCREEN ----
+// ---- CRAFTING ----
 static int craftingSelected = 0;
 void render_crafting(GSGLOBAL *g, GameState *gs) {
     int bx = SCREEN_W/2 - 140;
@@ -487,22 +391,24 @@ void render_crafting(GSGLOBAL *g, GameState *gs) {
 
     int count = crafting_getRecipeCount();
     for (int i = 0; i < count && i < 12; i++) {
-        int sy = by + 28 + i * 26;
+        int sy2 = by + 28 + i*26;
         int canCraft = crafting_canCraft(gs, i);
         u64 col = (i == craftingSelected) ? COL_YELLOW :
                   (canCraft ? COL_WHITE : COL_DARK_GRAY);
-        draw_rect(g, bx+4, sy, 272, 24, (i == craftingSelected) ? GS_SETREG_RGBAQ(40,40,0,0x80,0) : COL_BLACK);
-        draw_text(g, crafting_getName(i), bx+8, sy+7, col);
-        if (canCraft)
-            draw_text(g, "OK", bx+240, sy+7, COL_GREEN);
+        if (i == craftingSelected)
+            draw_rect(g, bx+4, sy2, 272, 24, GS_SETREG_RGBAQ(40,40,0,0x80,0));
+        draw_text(g, crafting_getName(i), bx+8, sy2+7, col);
     }
-    draw_text(g, "Up/Down=Select  Cross=Craft  Tri=Close", bx+4, by+340, COL_GRAY);
+    draw_text(g, "X=Craft  Tri=Close", bx+60, by+340, COL_GRAY);
 
-    // Handle input for crafting
-    if (input_pressed(gs, PAD_UP))    craftingSelected = (craftingSelected - 1 + count) % count;
-    if (input_pressed(gs, PAD_DOWN))  craftingSelected = (craftingSelected + 1) % count;
-    if (input_pressed(gs, PAD_CROSS)) crafting_doCraft(gs, craftingSelected);
-    if (input_pressed(gs, PAD_TRIANGLE)) gs->state = STATE_PLAYING;
+    if (input_pressed(gs, PAD_UP))
+        craftingSelected = (craftingSelected - 1 + count) % count;
+    if (input_pressed(gs, PAD_DOWN))
+        craftingSelected = (craftingSelected + 1) % count;
+    if (input_pressed(gs, PAD_CROSS))
+        crafting_doCraft(gs, craftingSelected);
+    if (input_pressed(gs, PAD_TRIANGLE))
+        gs->state = STATE_PLAYING;
 }
 
 // ---- MENU ----
@@ -510,32 +416,35 @@ static int menuSelected = 0;
 void render_menu(GSGLOBAL *g, GameState *gs) {
     draw_rect(g, 0, 0, SCREEN_W, SCREEN_H, COL_BLACK);
 
-    // Counter vizual - clipeste ca sa stim ca jocul ruleaza
+    // Blink counter
     static int counter = 0;
     counter++;
-    int blink = (counter / 30) % 2;
-    if (blink) draw_rect(g, 8, 8, 20, 20, COL_WHITE);
-    else        draw_rect(g, 8, 8, 20, 20, COL_RED);
+    if ((counter / 30) % 2)
+        draw_rect(g, 8, 8, 20, 20, COL_WHITE);
+    else
+        draw_rect(g, 8, 8, 20, 20, COL_RED);
 
-    // Title
-    draw_text(g, "MINICRAFT", SCREEN_W/2 - 60, 100, COL_YELLOW);
-    draw_text(g, "PS2 Edition", SCREEN_W/2 - 60, 120, COL_WHITE);
-    draw_text(g, "Port by PS2 Homebrew", SCREEN_W/2 - 100, 140, COL_GRAY);
+    draw_text(g, "MINICRAFT", SCREEN_W/2 - 54, 100, COL_YELLOW);
+    draw_text(g, "PS2 Edition", SCREEN_W/2 - 66, 120, COL_WHITE);
 
     static const char *opts[] = { "Start Game", "Quit" };
     for (int i = 0; i < 2; i++) {
-        u64 col = (i == menuSelected) ? COL_YELLOW : COL_WHITE;
-        draw_rect(g, SCREEN_W/2 - 80, 220 + i*40, 160, 30,
-            (i == menuSelected) ? GS_SETREG_RGBAQ(40,40,0,0x80,0) : COL_DARK_GRAY);
-        draw_text(g, opts[i], SCREEN_W/2 - 48, 228 + i*40, col);
+        if (i == menuSelected)
+            draw_rect(g, SCREEN_W/2-80, 200+i*40, 160, 28, GS_SETREG_RGBAQ(0,100,0,0x80,0));
+        else
+            draw_rect(g, SCREEN_W/2-80, 200+i*40, 160, 28, COL_DARK_GRAY);
+        draw_text(g, opts[i], SCREEN_W/2-48, 207+i*40,
+            (i == menuSelected) ? COL_YELLOW : COL_WHITE);
     }
-    draw_text(g, "Cross=Select", SCREEN_W/2-60, 320, COL_GRAY);
+    draw_text(g, "Cross=Select", SCREEN_W/2-72, 300, COL_GRAY);
 
-    if (input_pressed(gs, PAD_UP))   menuSelected = (menuSelected + 1) % 2;
-    if (input_pressed(gs, PAD_DOWN)) menuSelected = (menuSelected + 1) % 2;
+    if (input_pressed(gs, PAD_UP))
+        menuSelected = (menuSelected + 1) % 2;
+    if (input_pressed(gs, PAD_DOWN))
+        menuSelected = (menuSelected + 1) % 2;
     if (input_pressed(gs, PAD_CROSS)) {
         if (menuSelected == 0) gs->state = STATE_PLAYING;
-        else                   SleepThread(); // quit
+        // Quit - nu facem nimic, doar ignoram
     }
 }
 
@@ -543,20 +452,14 @@ void render_menu(GSGLOBAL *g, GameState *gs) {
 static void render_dead(GSGLOBAL *g, GameState *gs) {
     draw_rect(g, 0, 0, SCREEN_W, SCREEN_H, GS_SETREG_RGBAQ(40,0,0,0x80,0));
     draw_text(g, "YOU DIED", SCREEN_W/2-50, 180, COL_RED);
-    char score[32];
-    score[0]='K'; score[1]='i'; score[2]='l'; score[3]='l'; score[4]='s'; score[5]=':';
-    score[6]=' '; score[7]='0'+gs->monstersKilled/10; score[8]='0'+gs->monstersKilled%10; score[9]=0;
-    draw_text(g, score, SCREEN_W/2-40, 220, COL_WHITE);
-    draw_text(g, "Cross=Restart", SCREEN_W/2-70, 270, COL_YELLOW);
+    draw_text(g, "Cross=Restart", SCREEN_W/2-78, 240, COL_YELLOW);
     if (input_pressed(gs, PAD_CROSS)) game_init(gs);
 }
 
 static void render_win(GSGLOBAL *g, GameState *gs) {
     draw_rect(g, 0, 0, SCREEN_W, SCREEN_H, GS_SETREG_RGBAQ(0,0,40,0x80,0));
     draw_text(g, "YOU WIN!", SCREEN_W/2-48, 160, COL_YELLOW);
-    draw_text(g, "The Air Wizard is defeated!", SCREEN_W/2-130, 200, COL_WHITE);
-    draw_text(g, "You are finally alone.", SCREEN_W/2-100, 230, COL_CYAN);
-    draw_text(g, "Cross=Play Again", SCREEN_W/2-80, 290, COL_YELLOW);
+    draw_text(g, "Cross=Play Again", SCREEN_W/2-96, 240, COL_YELLOW);
     if (input_pressed(gs, PAD_CROSS)) game_init(gs);
 }
 
@@ -570,22 +473,30 @@ void render_minimap(GSGLOBAL *g, GameState *gs) {
             int tile = world_getTile(lv, tx*2, ty*2);
             u64 c;
             switch(tile) {
-                case TILE_WATER:    c = COL_BLUE;       break;
-                case TILE_LAVA:     c = COL_LAVA_COL;   break;
-                case TILE_SAND:     c = COL_SAND;        break;
-                case TILE_STONE:    c = COL_GRAY;        break;
-                case TILE_TREE:     c = COL_DARK_GREEN;  break;
-                case TILE_CLOUD:    c = COL_WHITE;       break;
-                case TILE_HOLE:     c = COL_BLACK;       break;
-                default:            c = COL_DARK_GREEN;  break;
+                case TILE_WATER:  c = COL_BLUE;      break;
+                case TILE_LAVA:   c = COL_LAVA_COL;  break;
+                case TILE_SAND:   c = COL_SAND;       break;
+                case TILE_STONE:  c = COL_GRAY;       break;
+                case TILE_TREE:   c = COL_DARK_GREEN; break;
+                case TILE_HOLE:   c = COL_BLACK;      break;
+                default:          c = COL_DARK_GREEN; break;
             }
-            draw_rect(g, mx + tx*2, my + ty*2, 2, 2, c);
+            draw_rect(g, mx+tx*2, my+ty*2, 2, 2, c);
         }
     }
     // Player dot
-    int px = (gs->player.x / TILE_SIZE) * 2 / 4;
-    int py = (gs->player.y / TILE_SIZE) * 2 / 4;
-    draw_rect(g, mx + px, my + py, 3, 3, COL_WHITE);
+    int pdx = (gs->player.x / TILE_SIZE) / 2;
+    int pdy = (gs->player.y / TILE_SIZE) / 2;
+    if (pdx >= 0 && pdx < 32 && pdy >= 0 && pdy < 32)
+        draw_rect(g, mx+pdx*2, my+pdy*2, 3, 3, COL_WHITE);
+}
+
+// ---- PAUSE ----
+static void render_pause(GSGLOBAL *g, GameState *gs) {
+    draw_rect(g, SCREEN_W/2-80, SCREEN_H/2-30, 160, 60, COL_DARK_GRAY);
+    draw_rect(g, SCREEN_W/2-78, SCREEN_H/2-28, 156, 56, COL_BLACK);
+    draw_text(g, "PAUSED", SCREEN_W/2-36, SCREEN_H/2-18, COL_YELLOW);
+    draw_text(g, "Start=Resume", SCREEN_W/2-72, SCREEN_H/2+4, COL_WHITE);
 }
 
 // ---- MAIN RENDER ----
@@ -605,11 +516,10 @@ void game_render(GameState *gs, GSGLOBAL *g) {
         return;
     }
 
-    // ---- World render ----
+    // World
     Level *lv = &gs->levels[gs->currentLevel];
-    float bright = brightness_day(gs->dayTime);
+    int bright = brightness_day(gs->dayTime);
 
-    // Visible tiles
     int startX = (gs->camX - SCREEN_W/2) / TILE_SIZE - 1;
     int startY = (gs->camY - (SCREEN_H-40)/2) / TILE_SIZE - 1;
     if (startX < 0) startX = 0;
@@ -622,22 +532,13 @@ void game_render(GameState *gs, GSGLOBAL *g) {
     for (int ty = startY; ty < endY; ty++) {
         for (int tx = startX; tx < endX; tx++) {
             int tile = world_getTile(lv, tx, ty);
-            int px = tx * TILE_SIZE - gs->camX + SCREEN_W/2;
-            int py = ty * TILE_SIZE - gs->camY + (SCREEN_H-40)/2;
-            render_tile(g, tile, px, py, bright);
+            int px2 = tx * TILE_SIZE - gs->camX + SCREEN_W/2;
+            int py2 = ty * TILE_SIZE - gs->camY + (SCREEN_H-40)/2;
+            render_tile(g, tile, px2, py2, bright);
         }
     }
 
-    // Particles
-    for (int i = 0; i < MAX_PARTICLES; i++) {
-        Particle *pt = &gs->particles[i];
-        if (pt->life <= 0) continue;
-        int px = pt->x - gs->camX + SCREEN_W/2;
-        int py = pt->y - gs->camY + (SCREEN_H-40)/2;
-        draw_rect(g, px, py, 3, 3, pt->color);
-    }
-
-    // Entities on current level
+    // Entities
     for (int i = 0; i < gs->entityCount; i++) {
         Entity *e = &gs->entities[i];
         if (!e->alive || e->level != gs->currentLevel) continue;
@@ -647,27 +548,13 @@ void game_render(GameState *gs, GSGLOBAL *g) {
     // Player
     {
         Entity *p = &gs->player;
-        int sx = SCREEN_W/2;
-        int sy = (SCREEN_H-40)/2;
+        int sx2 = SCREEN_W/2;
+        int sy2 = (SCREEN_H-40)/2;
         u64 bodyCol = (p->hurtTime > 0 && (p->hurtTime & 2)) ? COL_RED : COL_WHITE;
-        // Body
-        draw_rect(g, sx-4, sy-6, 8, 12, bodyCol);
-        // Head
-        draw_rect(g, sx-4, sy-14, 8, 10, GS_SETREG_RGBAQ(220,180,140,0x80,0));
-        // Eyes
-        draw_rect(g, sx-2, sy-12, 2, 2, COL_BLACK);
-        draw_rect(g, sx+1, sy-12, 2, 2, COL_BLACK);
-        // Held item indicator
-        int heldItem = gs->inventory[gs->selectedSlot].type;
-        if (heldItem != ITEM_NONE) {
-            u64 ic = item_getColor(heldItem);
-            switch(p->dir) {
-                case DIR_UP:    draw_rect(g, sx-1, sy-20, 4, 8, ic); break;
-                case DIR_DOWN:  draw_rect(g, sx+4, sy+4, 4, 8, ic);  break;
-                case DIR_LEFT:  draw_rect(g, sx-12, sy-2, 8, 4, ic); break;
-                case DIR_RIGHT: draw_rect(g, sx+4, sy-2, 8, 4, ic);  break;
-            }
-        }
+        draw_rect(g, sx2-4, sy2-6, 8, 12, bodyCol);
+        draw_rect(g, sx2-4, sy2-14, 8, 10, GS_SETREG_RGBAQ(220,180,140,0x80,0));
+        draw_rect(g, sx2-2, sy2-12, 2, 2, COL_BLACK);
+        draw_rect(g, sx2+1, sy2-12, 2, 2, COL_BLACK);
     }
 
     // HUD
@@ -676,7 +563,8 @@ void game_render(GameState *gs, GSGLOBAL *g) {
     // Minimap
     render_minimap(g, gs);
 
-    // Inventory / crafting overlays
+    // Overlays
     if (gs->state == STATE_INVENTORY) render_inventory(g, gs);
     if (gs->state == STATE_CRAFTING)  render_crafting(g, gs);
+    if (gs->state == STATE_PAUSE)     render_pause(g, gs);
 }

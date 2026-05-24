@@ -284,7 +284,7 @@ void slime_ai(GameState *gs, int idx);
 void airwizard_ai(GameState *gs, int idx);
 
 // render.c
-void render_tile(GSGLOBAL *g, int tile, int x, int y, float brightness);
+void render_tile(GSGLOBAL *g, int tile, int x, int y, int brightness);
 void render_entity(GSGLOBAL *g, Entity *e, int camX, int camY);
 void render_hud(GSGLOBAL *g, GameState *gs);
 void render_inventory(GSGLOBAL *g, GameState *gs);
@@ -315,7 +315,7 @@ void particle_tickAll(GameState *gs);
 int  rng_next(void);
 void rng_seed(unsigned int s);
 int  rng_range(int min, int max);
-float brightness_day(int dayTime);
+int brightness_day(int dayTime);
 const char* item_getName(int item);
 u64  item_getColor(int item);
 

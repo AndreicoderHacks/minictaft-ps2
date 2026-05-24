@@ -13,8 +13,8 @@ void game_init(GameState *gs2) {
     }
 
     int spawnX = WORLD_W/2, spawnY = WORLD_H/2;
-    for (int y = WORLD_H/2; y < WORLD_H; y++) {
-        for (int x = WORLD_W/2; x < WORLD_W; x++) {
+    for (int y = 0; y < WORLD_H; y++) {
+        for (int x = 0; x < WORLD_W; x++) {
             if (world_getTile(&gs2->levels[0], x, y) == TILE_GRASS) {
                 spawnX = x; spawnY = y;
                 goto found;
@@ -23,6 +23,8 @@ void game_init(GameState *gs2) {
     }
     found:
     player_init(&gs2->player, spawnX, spawnY);
+    gs2->camX = gs2->player.x;
+    gs2->camY = gs2->player.y;
     gs2->dayTime = 0;
     gs2->tickCount = 0;
 }
@@ -41,9 +43,11 @@ void game_tick(GameState *gs2) {
         entity_tickAll(gs2);
         particle_tickAll(gs2);
 
+        // Camera smooth follow
         gs2->camX += (gs2->player.x - gs2->camX) / 4;
         gs2->camY += (gs2->player.y - gs2->camY) / 4;
 
+        // Clamp camera
         int halfW = SCREEN_W / 2;
         int halfH = (SCREEN_H - 40) / 2;
         if (gs2->camX < halfW) gs2->camX = halfW;
@@ -64,7 +68,7 @@ int main(void) {
     gsGlobal->PSMZ            = GS_PSMZ_16;
     gsGlobal->ZBuffering      = GS_SETTING_OFF;
     gsGlobal->DoubleBuffering = GS_SETTING_ON;
-    gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
+    gsGlobal->PrimAlphaEnable = GS_SETTING_OFF;
 
     dmaKit_init(D_CTRL_RELE_OFF, D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC,
                 D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
@@ -81,8 +85,8 @@ int main(void) {
         input_update(&gs);
         game_tick(&gs);
         game_render(&gs, gsGlobal);
-        gsKit_sync_flip(gsGlobal);
         gsKit_queue_exec(gsGlobal);
+        gsKit_sync_flip(gsGlobal);
     }
 
     return 0;
