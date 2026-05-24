@@ -8,12 +8,7 @@ void input_init(void) {
     padInit(0);
     padPortOpen(0, 0, padBuf[0]);
     padPortOpen(1, 0, padBuf[1]);
-
-    // Wait for pad to be ready
-    int state;
-    do {
-        state = padGetState(0, 0);
-    } while((state != PAD_STATE_STABLE) && (state != PAD_STATE_FINDCTP1));
+    // Nu astepta - lasa game loop sa se ocupe
 }
 
 void input_update(GameState *gs) {
@@ -21,11 +16,12 @@ void input_update(GameState *gs) {
 
     int state = padGetState(0, 0);
     if (state == PAD_STATE_STABLE || state == PAD_STATE_FINDCTP1) {
-        padRead(0, 0, &buttons);
-        gs->padCurrent = ~buttons.btns; // buttons are active-low
-    } else {
-        gs->padCurrent = 0;
+        if (padRead(0, 0, &buttons) != 0) {
+            gs->padCurrent = ~buttons.btns;
+        }
     }
+    // Daca pad nu e gata, pastreaza butoanele vechi
+    // (nu reseta la 0 ca sa nu blocheze meniul)
 }
 
 int input_pressed(GameState *gs, u32 button) {
