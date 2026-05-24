@@ -11,13 +11,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install ps2dev
         run: |
-          export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin
+          sudo mkdir -p /usr/local/ps2dev/bin
+          sudo mkdir -p /usr/local/ps2dev/ee/bin
+          sudo mkdir -p /usr/local/ps2dev/iop/bin
+          sudo mkdir -p /usr/local/ps2dev/dvp/bin
+          sudo mkdir -p /usr/local/ps2dev/ps2sdk/bin
+          sudo chmod -R 777 /usr/local/ps2dev
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
           git clone --depth=1 https://github.com/ps2dev/ps2dev.git
           cd ps2dev
-          sudo --preserve-env ./build-all.sh
+          ./build-all.sh
       - name: Build game
         run: |
-          export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
           make
       - uses: actions/upload-artifact@v4
         with:
