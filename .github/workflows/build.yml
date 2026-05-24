@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install ps2dev prebuilt
         run: |
-          wget -q https://github.com/ps2dev/ps2dev/releases/latest/download/ubuntu-latest.tar.gz
-          sudo tar -xzf ubuntu-latest.tar.gz -C /usr/local
+          curl -o ps2dev.tar.gz -L https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
+          sudo tar -xzf ps2dev.tar.gz --strip-components 1 -C /usr/local
           echo "/usr/local/ps2dev/bin" >> $GITHUB_PATH
           echo "/usr/local/ps2dev/ee/bin" >> $GITHUB_PATH
           echo "/usr/local/ps2dev/iop/bin" >> $GITHUB_PATH
