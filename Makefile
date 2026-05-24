@@ -1,7 +1,7 @@
 EE_BIN = minicraft.elf
 
-SRCS = src/main.c src/world.c src/player.c src/entity.c \
-       src/render.c src/input.c src/crafting.c src/particles.c
+SRCS = main.c world.c player.c entity.c \
+       render.c input.c crafting.c particles.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -13,7 +13,7 @@ CFLAGS  = -O2 -Wall -G0 -D_EE \
           -I$(PS2SDK)/ee/include \
           -I$(PS2SDK)/common/include \
           -I$(GSKIT)/include \
-          -Isrc
+          -I.
 
 LDFLAGS = -nostartfiles \
           -T$(PS2SDK)/ee/startup/linkfile \
