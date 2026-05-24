@@ -103,10 +103,12 @@ void draw_rect(GSGLOBAL *g, int x, int y, int w, int h, u64 color) {
 
 void draw_char(GSGLOBAL *g, char c, int x, int y, u64 color) {
     int idx = -1;
-    if (c >= 32 && c <= 90)       idx = c - 32;
-    else if (c >= 97 && c <= 122) idx = (c - 97) + (97 - 32); // lowercase offset
-    if (idx < 0 || idx >= (int)(sizeof(font5x7)/sizeof(font5x7[0]))) return;
-
+    if (c >= 32 && c <= 90) {
+        idx = c - 32;
+    } else if (c >= 97 && c <= 122) {
+        idx = (c - 97) + 59;
+    }
+    if (idx < 0 || idx >= 85) return;
     const u8 *glyph = font5x7[idx];
     for (int row = 0; row < 5; row++) {
         for (int col = 0; col < 5; col++) {
@@ -116,7 +118,6 @@ void draw_char(GSGLOBAL *g, char c, int x, int y, u64 color) {
         }
     }
 }
-
 void draw_text(GSGLOBAL *g, const char *str, int x, int y, u64 color) {
     int cx = x;
     while (*str) {
