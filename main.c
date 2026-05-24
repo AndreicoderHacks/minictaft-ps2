@@ -101,8 +101,16 @@ int main(void) {
     // Enable alpha blending
     gsKit_set_primalpha(gsGlobal, GS_SETREG_ALPHA(0,1,0,1,0), 0);
 
-    // Init input
+    // Init input cu delay
     input_init();
+    
+    // Asteapta pad sa fie gata
+    int timeout = 0;
+    while (timeout < 300) {
+        int state = padGetState(0, 0);
+        if (state == PAD_STATE_STABLE || state == PAD_STATE_FINDCTP1) break;
+        timeout++;
+    }
 
     // Init game
     GameState gs;
