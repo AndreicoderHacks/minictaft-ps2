@@ -113,7 +113,7 @@ int main(void) {
     }
 
     // Init game
-    GameState gs;
+    static GameState gs;
     game_init(&gs);
 
     // Seed RNG with some value
