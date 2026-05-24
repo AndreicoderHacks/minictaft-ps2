@@ -112,9 +112,19 @@ int main(void) {
         timeout++;
     }
 
+  // Debug - arata ecran rosu inainte de init
+    gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(255,0,0,0x80,0));
+    gsKit_sync_flip(gsGlobal);
+    gsKit_queue_exec(gsGlobal);
+
     // Init game
     static GameState gs;
     game_init(&gs);
+
+    // Debug - arata ecran verde dupa init
+    gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0,255,0,0x80,0));
+    gsKit_sync_flip(gsGlobal);
+    gsKit_queue_exec(gsGlobal);
 
     // Seed RNG with some value
     rng_seed(0xCAFE1234);
