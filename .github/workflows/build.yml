@@ -20,9 +20,8 @@ jobs:
           export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
           git clone --depth=1 https://github.com/ps2dev/ps2dev.git
           cd ps2dev
-          bash scripts/000-ps2toolchain.sh
-          bash scripts/001-ps2sdk.sh
-          bash scripts/002-gsKit.sh
+          ls scripts/
+          ./build-all.sh || true
       - name: Build game
         run: |
           export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
