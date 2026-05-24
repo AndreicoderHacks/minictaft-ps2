@@ -15,7 +15,7 @@ void input_update(GameState *gs) {
     int state = padGetState(0, 0);
     if (state == PAD_STATE_STABLE || state == PAD_STATE_FINDCTP1) {
         padRead(0, 0, &buttons);
-        u32 raw = ((u32)buttons.btns[0] | ((u32)buttons.btns[1] << 8));
+        gs->padCurrent = ~((u32)buttons.btns);
         gs->padCurrent = ~raw;
     }
 }
