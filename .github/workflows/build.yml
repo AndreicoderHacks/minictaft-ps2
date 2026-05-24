@@ -1,9 +1,6 @@
 - name: Build game
         run: |
-          echo "=== /usr/local/ps2dev ==="
           ls /usr/local/ps2dev/ || echo "EMPTY"
-          echo "=== /usr/local/ ==="
-          ls /usr/local/ | grep ps2
-          echo "=== find gcc ==="
-          find /usr/local -name "*ps2-elf-gcc*" 2>/dev/null || echo "NOT FOUND"
+          ls /usr/local/ || echo "EMPTY2"
+          find /usr/local -name "*ps2-elf-gcc*" || echo "NOT FOUND"
           make
