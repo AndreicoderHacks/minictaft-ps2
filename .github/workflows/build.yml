@@ -1,30 +1,9 @@
-name: Build Minicraft PS2
-on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      PS2DEV: /usr/local/ps2dev
-      PS2SDK: /usr/local/ps2dev/ps2sdk
-      GSKIT: /usr/local/ps2dev/gsKit
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install ps2dev prebuilt
+- name: Build game
         run: |
-          curl -o ps2dev.tar.gz -L https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
-          sudo tar -xzf ps2dev.tar.gz --strip-components 1 -C /usr/local
-          sudo mkdir -p /usr/local/ps2dev/ps2sdk/samples
-          curl -o Makefile.pref -L https://raw.githubusercontent.com/ps2dev/ps2sdk/master/samples/Makefile.pref_sample
-          curl -o Makefile.eeglobal -L https://raw.githubusercontent.com/ps2dev/ps2sdk/master/samples/Makefile.eeglobal_sample
-          sudo mv Makefile.pref /usr/local/ps2dev/ps2sdk/samples/Makefile.pref
-          sudo mv Makefile.eeglobal /usr/local/ps2dev/ps2sdk/samples/Makefile.eeglobal
-      - name: Build game
-        run: |
-          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin
-          which mips64r5900el-ps2-elf-gcc || echo "NOT FOUND"
-          ls /usr/local/ps2dev/ee/bin/ || echo "DIR EMPTY"
+          echo "=== /usr/local/ps2dev ==="
+          ls /usr/local/ps2dev/ || echo "EMPTY"
+          echo "=== /usr/local/ ==="
+          ls /usr/local/ | grep ps2
+          echo "=== find gcc ==="
+          find /usr/local -name "*ps2-elf-gcc*" 2>/dev/null || echo "NOT FOUND"
           make
-      - uses: actions/upload-artifact@v4
-        with:
-          name: minicraft-elf
-          path: minicraft.elf
