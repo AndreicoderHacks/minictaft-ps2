@@ -1,6 +1,25 @@
-- name: Build game
+name: Build Minicraft PS2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ps2dev
         run: |
-          ls /usr/local/ps2dev/ || echo "EMPTY"
-          ls /usr/local/ || echo "EMPTY2"
-          find /usr/local -name "*ps2-elf-gcc*" || echo "NOT FOUND"
+          curl -o ps2dev.tar.gz -L https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
+          sudo tar -xzf ps2dev.tar.gz -C /usr/local
+          ls /usr/local/ps2dev/
+          find /usr/local -name "*ps2-elf-gcc*"
+      - name: Build game
+        env:
+          PS2DEV: /usr/local/ps2dev
+          PS2SDK: /usr/local/ps2dev/ps2sdk
+          GSKIT: /usr/local/ps2dev/gsKit
+        run: |
+          export PATH=$PATH:/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin
           make
+      - uses: actions/upload-artifact@v4
+        with:
+          name: minicraft-elf
+          path: minicraft.elf
