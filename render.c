@@ -510,6 +510,13 @@ static int menuSelected = 0;
 void render_menu(GSGLOBAL *g, GameState *gs) {
     draw_rect(g, 0, 0, SCREEN_W, SCREEN_H, COL_BLACK);
 
+    // Counter vizual - clipeste ca sa stim ca jocul ruleaza
+    static int counter = 0;
+    counter++;
+    int blink = (counter / 30) % 2;
+    if (blink) draw_rect(g, 8, 8, 20, 20, COL_WHITE);
+    else        draw_rect(g, 8, 8, 20, 20, COL_RED);
+
     // Title
     draw_text(g, "MINICRAFT", SCREEN_W/2 - 60, 100, COL_YELLOW);
     draw_text(g, "PS2 Edition", SCREEN_W/2 - 60, 120, COL_WHITE);
