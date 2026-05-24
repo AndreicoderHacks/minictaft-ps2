@@ -1,25 +1,34 @@
 EE_BIN = minicraft.elf
 
-EE_OBJS = \
-	src/main.o \
-	src/world.o \
-	src/player.o \
-	src/entity.o \
-	src/render.o \
-	src/input.o \
-	src/crafting.o \
-	src/particles.o
+SRCS = src/main.c src/world.c src/player.c src/entity.c \
+       src/render.c src/input.c src/crafting.c src/particles.c
 
-EE_CFLAGS  = -O2 -Wall -G0
-EE_LDFLAGS =
-EE_LIBS    = -lgskit -ldmakit -lpad -lc -lm -lgcc
+OBJS = $(SRCS:.c=.o)
 
-EE_INCS = -Isrc
+PS2SDK ?= /usr/local/ps2dev/ps2sdk
+GSKIT  ?= /usr/local/ps2dev/gsKit
+
+CC      = mips64r5900el-ps2-elf-gcc
+CFLAGS  = -O2 -Wall -G0 -D_EE \
+          -I$(PS2SDK)/ee/include \
+          -I$(PS2SDK)/common/include \
+          -I$(GSKIT)/include \
+          -Isrc
+
+LDFLAGS = -nostartfiles \
+          -T$(PS2SDK)/ee/startup/linkfile \
+          -L$(PS2SDK)/ee/lib \
+          -L$(GSKIT)/lib
+
+LIBS = -lgskit -ldmakit -lpad -lc -lm -lgcc -lkernel
 
 all: $(EE_BIN)
 
-clean:
-	rm -f $(EE_OBJS) $(EE_BIN)
+$(EE_BIN): $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-include $(PS2SDK)/samples/Makefile.pref
-include $(PS2SDK)/samples/Makefile.eeglobal
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(OBJS) $(EE_BIN)
