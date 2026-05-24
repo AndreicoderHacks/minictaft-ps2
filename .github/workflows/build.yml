@@ -1,0 +1,27 @@
+name: Build Minicraft PS2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install ps2dev
+        run: |
+          git clone --depth=1 https://github.com/ps2dev/ps2dev.git
+          cd ps2dev
+          export PS2DEV=/usr/local/ps2dev
+          export PS2SDK=$PS2DEV/ps2sdk
+          export GSKIT=$PS2DEV/gsKit
+          export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin
+          sudo ./build-all.sh
+      - name: Build game
+        run: |
+          export PS2DEV=/usr/local/ps2dev
+          export PS2SDK=$PS2DEV/ps2sdk
+          export GSKIT=$PS2DEV/gsKit
+          export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin
+          make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: minicraft-elf
+          path: minicraft.elf
