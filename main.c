@@ -12,7 +12,7 @@ void game_init(GameState *gs2) {
         world_generate(&gs2->levels[i], i, seed);
     }
 
-    int spawnX = WORLD_W/2, spawnY = WORLD_H/2;
+    int spawnX = 5, spawnY = 5;
     for (int y = 0; y < WORLD_H; y++) {
         for (int x = 0; x < WORLD_W; x++) {
             if (world_getTile(&gs2->levels[0], x, y) == TILE_GRASS) {

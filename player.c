@@ -266,41 +266,9 @@ void player_tick(GameState *gs) {
     if (input_held(gs, PAD_LEFT))  { mx = -speed; p->dir = DIR_LEFT;  }
     if (input_held(gs, PAD_RIGHT)) { mx =  speed; p->dir = DIR_RIGHT; }
 
-    // Collision X
-    int nx = p->x + mx;
-    int ny = p->y;
-    int tw = TILE_SIZE - 4;
-    int th = TILE_SIZE - 4;
-
-    // Check 4 corners for collision
-    int canMoveX = 1;
-    int cx1 = (nx - tw/2) / TILE_SIZE;
-    int cx2 = (nx + tw/2) / TILE_SIZE;
-    int cy1 = (ny - th/2) / TILE_SIZE;
-    int cy2 = (ny + th/2) / TILE_SIZE;
-    if (world_isSolid(world_getTile(lv, cx1, cy1)) ||
-        world_isSolid(world_getTile(lv, cx2, cy1)) ||
-        world_isSolid(world_getTile(lv, cx1, cy2)) ||
-        world_isSolid(world_getTile(lv, cx2, cy2))) {
-        canMoveX = 0;
-    }
-    if (canMoveX) p->x = nx;
-
-    // Collision Y
-    nx = p->x;
-    ny = p->y + my;
-    cx1 = (nx - tw/2) / TILE_SIZE;
-    cx2 = (nx + tw/2) / TILE_SIZE;
-    cy1 = (ny - th/2) / TILE_SIZE;
-    cy2 = (ny + th/2) / TILE_SIZE;
-    int canMoveY = 1;
-    if (world_isSolid(world_getTile(lv, cx1, cy1)) ||
-        world_isSolid(world_getTile(lv, cx2, cy1)) ||
-        world_isSolid(world_getTile(lv, cx1, cy2)) ||
-        world_isSolid(world_getTile(lv, cx2, cy2))) {
-        canMoveY = 0;
-    }
-    if (canMoveY) p->y = ny;
+    // Miscare simpla fara coliziuni (test)
+    p->x += mx;
+    p->y += my;
 
     // Lava damage
     int ptx = p->x / TILE_SIZE;
