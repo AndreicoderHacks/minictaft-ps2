@@ -27,9 +27,3 @@ void input_update(GameState *gs) {
 int input_pressed(GameState *gs, u32 button) {
     return (gs->padCurrent & button) && !(gs->padPrev & button);
 }
-
-u32 pad = gs->padCurrent;
-    if (pad & PAD_UP)    { my = -speed; p->dir = DIR_UP;    }
-    if (pad & PAD_DOWN)  { my =  speed; p->dir = DIR_DOWN;  }
-    if (pad & PAD_LEFT)  { mx = -speed; p->dir = DIR_LEFT;  }
-    if (pad & PAD_RIGHT) { mx =  speed; p->dir = DIR_RIGHT; }
