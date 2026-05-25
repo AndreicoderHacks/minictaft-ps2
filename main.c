@@ -13,8 +13,8 @@ void game_init(GameState *gs2) {
     }
 
     int spawnX = 5, spawnY = 5;
-    for (int y = 0; y < WORLD_H; y++) {
-        for (int x = 0; x < WORLD_W; x++) {
+    for (int y = WORLD_H/4; y < WORLD_H*3/4; y++) {
+        for (int x = WORLD_W/4; x < WORLD_W*3/4; x++) {
             if (world_getTile(&gs2->levels[0], x, y) == TILE_GRASS) {
                 spawnX = x; spawnY = y;
                 goto found;
