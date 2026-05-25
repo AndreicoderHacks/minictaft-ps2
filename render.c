@@ -358,24 +358,24 @@ void render_hud(GSGLOBAL *g, GameState *gs) {
 
 // ---- INVENTORY ----
 void render_inventory(GSGLOBAL *g, GameState *gs) {
-    int bx = SCREEN_W/2 - 120;
-    int by = SCREEN_H/2 - 80;
-    draw_rect(g, bx, by, 240, 160, COL_DARK_GRAY);
-    draw_rect(g, bx+2, by+2, 236, 156, COL_BLACK);
-    draw_text(g, "INVENTORY", bx+60, by+8, COL_YELLOW);
+    // Background simplu
+    draw_rect(g, 100, 100, 440, 250, COL_DARK_GRAY);
+    draw_rect(g, 102, 102, 436, 246, COL_BLACK);
+    draw_text(g, "INVENTORY", 270, 110, COL_YELLOW);
 
+    // Doar text, fara multe dreptunghiuri
     for (int i = 0; i < INV_SIZE; i++) {
-        int sx2 = bx + 10 + (i%3)*75;
-        int sy2 = by + 30 + (i/3)*40;
-        draw_rect(g, sx2, sy2, 65, 30,
-            (i == gs->selectedSlot) ? COL_YELLOW : COL_DARK_GRAY);
-        draw_rect(g, sx2+1, sy2+1, 63, 28, COL_BLACK);
+        int sy2 = 130 + i * 24;
         if (gs->inventory[i].type != ITEM_NONE) {
-            draw_rect(g, sx2+3, sy2+3, 14, 14, item_getColor(gs->inventory[i].type));
-            draw_text(g, item_getName(gs->inventory[i].type), sx2+20, sy2+8, COL_WHITE);
+            if (i == gs->selectedSlot)
+                draw_rect(g, 110, sy2, 420, 20, GS_SETREG_RGBAQ(0,80,0,0x80,0));
+            draw_text(g, item_getName(gs->inventory[i].type), 120, sy2+4, COL_WHITE);
+        } else {
+            if (i == gs->selectedSlot)
+                draw_rect(g, 110, sy2, 420, 20, GS_SETREG_RGBAQ(40,40,0,0x80,0));
         }
     }
-    draw_text(g, "Tri=Close", bx+70, by+142, COL_GRAY);
+    draw_text(g, "Tri=Close", 270, 330, COL_GRAY);
 
     if (input_pressed(gs, PAD_TRIANGLE)) gs->state = STATE_PLAYING;
 }
@@ -468,9 +468,12 @@ void render_minimap(GSGLOBAL *g, GameState *gs) {
     Level *lv = &gs->levels[gs->currentLevel];
     int mx = SCREEN_W - 68, my = 8;
     draw_rect(g, mx-2, my-2, 68, 68, COL_DARK_GRAY);
-    for (int ty = 0; ty < 32; ty++) {
-        for (int tx = 0; tx < 32; tx++) {
-            int tile = world_getTile(lv, tx*2, ty*2);
+    draw_rect(g, mx, my, 64, 64, COL_BLACK);
+
+    // Desenam doar la fiecare 4 tile-uri ca sa reducem draw calls
+    for (int ty = 0; ty < WORLD_H; ty += 4) {
+        for (int tx = 0; tx < WORLD_W; tx += 4) {
+            int tile = world_getTile(lv, tx, ty);
             u64 c;
             switch(tile) {
                 case TILE_WATER:  c = COL_BLUE;      break;
@@ -481,14 +484,14 @@ void render_minimap(GSGLOBAL *g, GameState *gs) {
                 case TILE_HOLE:   c = COL_BLACK;      break;
                 default:          c = COL_DARK_GREEN; break;
             }
-            draw_rect(g, mx+tx*2, my+ty*2, 2, 2, c);
+            draw_rect(g, mx + tx, my + ty, 4, 4, c);
         }
     }
     // Player dot
-    int pdx = (gs->player.x / TILE_SIZE) / 2;
-    int pdy = (gs->player.y / TILE_SIZE) / 2;
-    if (pdx >= 0 && pdx < 32 && pdy >= 0 && pdy < 32)
-        draw_rect(g, mx+pdx*2, my+pdy*2, 3, 3, COL_WHITE);
+    int pdx = gs->player.x / TILE_SIZE;
+    int pdy = gs->player.y / TILE_SIZE;
+    if (pdx >= 0 && pdx < 64 && pdy >= 0 && pdy < 64)
+        draw_rect(g, mx+pdx, my+pdy, 3, 3, COL_WHITE);
 }
 
 // ---- PAUSE ----
