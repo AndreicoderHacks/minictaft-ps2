@@ -257,16 +257,17 @@ void player_tick(GameState *gs) {
     if (p->hurtTime > 0)       p->hurtTime--;
     p->anim++;
 
-    // --- Movement ---
-    int speed = 2;  // pixels per tick
+   // --- Movement ---
+    int speed = 2;
     int mx = 0, my = 0;
 
-    if (input_held(gs, PAD_UP))    { my = -speed; p->dir = DIR_UP;    }
-    if (input_held(gs, PAD_DOWN))  { my =  speed; p->dir = DIR_DOWN;  }
-    if (input_held(gs, PAD_LEFT))  { mx = -speed; p->dir = DIR_LEFT;  }
-    if (input_held(gs, PAD_RIGHT)) { mx =  speed; p->dir = DIR_RIGHT; }
+    u32 pad = gs->padCurrent;
+    if (pad & PAD_UP)    { my = -speed; p->dir = DIR_UP;    }
+    if (pad & PAD_DOWN)  { my =  speed; p->dir = DIR_DOWN;  }
+    if (pad & PAD_LEFT)  { mx = -speed; p->dir = DIR_LEFT;  }
+    if (pad & PAD_RIGHT) { mx =  speed; p->dir = DIR_RIGHT; }
 
-    // Miscare simpla fara coliziuni (test)
+    // Miscare fara coliziuni
     p->x += mx;
     p->y += my;
 
