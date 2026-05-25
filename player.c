@@ -257,17 +257,16 @@ void player_tick(GameState *gs) {
     if (p->hurtTime > 0)       p->hurtTime--;
     p->anim++;
 
-   // --- Movement ---
-    int speed = 2;
+  // Test automat - player se misca singur
+    static int autoTimer = 0;
+    autoTimer++;
     int mx = 0, my = 0;
+    if (autoTimer < 60)       { mx =  1; }
+    else if (autoTimer < 120) { mx = -1; }
+    else if (autoTimer < 180) { my =  1; }
+    else if (autoTimer < 240) { my = -1; }
+    else autoTimer = 0;
 
-    u32 pad = gs->padCurrent;
-    if (pad & PAD_UP)    { my = -speed; p->dir = DIR_UP;    }
-    if (pad & PAD_DOWN)  { my =  speed; p->dir = DIR_DOWN;  }
-    if (pad & PAD_LEFT)  { mx = -speed; p->dir = DIR_LEFT;  }
-    if (pad & PAD_RIGHT) { mx =  speed; p->dir = DIR_RIGHT; }
-
-    // Miscare fara coliziuni
     p->x += mx;
     p->y += my;
 
