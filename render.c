@@ -415,6 +415,16 @@ void render_crafting(GSGLOBAL *g, GameState *gs) {
 static int menuSelected = 0;
 void render_menu(GSGLOBAL *g, GameState *gs) {
     draw_rect(g, 0, 0, SCREEN_W, SCREEN_H, COL_BLACK);
+    {
+        u32 pad = gs->padCurrent;
+        char hex[8];
+        hex[0] = "0123456789ABCDEF"[(pad >> 12) & 0xF];
+        hex[1] = "0123456789ABCDEF"[(pad >>  8) & 0xF];
+        hex[2] = "0123456789ABCDEF"[(pad >>  4) & 0xF];
+        hex[3] = "0123456789ABCDEF"[(pad      ) & 0xF];
+        hex[4] = 0;
+        draw_text(g, hex, 10, 30, COL_YELLOW);
+    }
 
     // Blink counter
     static int counter = 0;
