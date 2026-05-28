@@ -335,9 +335,10 @@ void player_tick(GameState *gs) {
         }
     }
 
-    // Open inventory
-    if (input_pressed(gs, PAD_TRIANGLE)) {
+    // Open inventory - doar cu debounce
+    if (input_pressed(gs, PAD_TRIANGLE) && gs->stateTimer == 0) {
         gs->state = STATE_INVENTORY;
+        gs->stateTimer = 20;
     }
 
     // Clamp to world

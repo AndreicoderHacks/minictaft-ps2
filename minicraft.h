@@ -208,6 +208,7 @@ typedef struct {
 
     // Game state
     int state;
+    int stateTimer;   // debounce timer pentru schimbari de state
     int prevState;      // for pause menu
 
     // Input (current and previous frame)

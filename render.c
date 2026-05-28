@@ -177,103 +177,31 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
     u64 col;
 
     switch(tile) {
-        case TILE_GRASS:
-            draw_rect(g, x, y, s, s, COL_DARK_GREEN);
-            break;
-        case TILE_DIRT:
-            draw_rect(g, x, y, s, s, COL_DIRT_COL);
-            break;
-        case TILE_SAND:
-            draw_rect(g, x, y, s, s, COL_SAND);
-            break;
-        case TILE_WATER:
-            draw_rect(g, x, y, s, s, COL_BLUE);
-            draw_rect(g, x+2, y+6, 6, 2, COL_LIGHT_BLUE);
-            break;
-        case TILE_LAVA:
-            draw_rect(g, x, y, s, s, COL_LAVA_COL);
-            draw_rect(g, x+3, y+5, 4, 3, COL_ORANGE);
-            break;
-        case TILE_STONE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x, y, s, 1, COL_DARK_GRAY);
-            draw_rect(g, x, y, 1, s, COL_DARK_GRAY);
-            break;
-        case TILE_HARDROCK:
-            draw_rect(g, x, y, s, s, COL_DARK_GRAY);
-            break;
-        case TILE_TREE:
-            draw_rect(g, x, y, s, s, COL_DARK_GREEN);
-            draw_rect(g, x+6, y+8, 4, 8, COL_BROWN);
-            draw_rect(g, x+2, y+2, 12, 8, COL_GREEN);
-            break;
-        case TILE_FLOWER:
-            draw_rect(g, x, y, s, s, COL_DARK_GREEN);
-            draw_rect(g, x+6, y+4, 4, 4, GS_SETREG_RGBAQ(255,120,180,0x80,0));
-            break;
-        case TILE_CACTUS:
-            draw_rect(g, x, y, s, s, COL_SAND);
-            draw_rect(g, x+6, y+2, 4, 12, COL_DARK_GREEN);
-            break;
-        case TILE_ROCK_ORE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+3, y+3, 4, 4, COL_GRAY);
-            break;
-        case TILE_IRON_ORE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+3, y+3, 4, 4, GS_SETREG_RGBAQ(200,160,120,0x80,0));
-            break;
-        case TILE_GOLD_ORE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+3, y+3, 4, 4, COL_YELLOW);
-            break;
-        case TILE_GEM_ORE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+3, y+3, 4, 4, COL_CYAN);
-            break;
-        case TILE_STAIRS_DOWN:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+6, y+4, 4, 8, COL_DARK_GRAY);
-            break;
-        case TILE_STAIRS_UP:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+6, y+4, 4, 8, COL_WHITE);
-            break;
-        case TILE_CLOUD:
-            draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(150,180,255,0x80,0));
-            draw_rect(g, x+2, y+2, s-4, s-4, COL_WHITE);
-            break;
-        case TILE_HOLE:
-            draw_rect(g, x, y, s, s, COL_BLACK);
-            break;
-        case TILE_WORKBENCH:
-            draw_rect(g, x, y, s, s, COL_BROWN);
-            draw_rect(g, x+2, y+2, s-4, 4, COL_DARK_GRAY);
-            break;
-        case TILE_FURNACE:
-            draw_rect(g, x, y, s, s, COL_STONE_COL);
-            draw_rect(g, x+4, y+4, 8, 8, COL_LAVA_COL);
-            break;
-        case TILE_FARMLAND:
-            draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(100,60,20,0x80,0));
-            break;
-        case TILE_WHEAT:
-            draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(100,60,20,0x80,0));
-            draw_rect(g, x+4, y+2, 2, 10, COL_YELLOW);
-            break;
-        case TILE_PORTAL:
-            draw_rect(g, x, y, s, s, COL_BLACK);
-            draw_rect(g, x+2, y+2, s-4, s-4, COL_PURPLE);
-            break;
-        default:
-            draw_rect(g, x, y, s, s, COL_DARK_GRAY);
-            break;
+        case TILE_GRASS:     col = COL_DARK_GREEN; break;
+        case TILE_DIRT:      col = COL_DIRT_COL;   break;
+        case TILE_SAND:      col = COL_SAND;        break;
+        case TILE_WATER:     col = COL_BLUE;        break;
+        case TILE_LAVA:      col = COL_LAVA_COL;    break;
+        case TILE_STONE:     col = COL_STONE_COL;   break;
+        case TILE_HARDROCK:  col = COL_DARK_GRAY;   break;
+        case TILE_TREE:      col = COL_GREEN;        break;
+        case TILE_ROCK_ORE:  col = COL_GRAY;         break;
+        case TILE_IRON_ORE:  col = GS_SETREG_RGBAQ(200,160,120,0x80,0); break;
+        case TILE_GOLD_ORE:  col = COL_YELLOW;       break;
+        case TILE_GEM_ORE:   col = COL_CYAN;         break;
+        case TILE_STAIRS_DOWN: col = GS_SETREG_RGBAQ(180,140,80,0x80,0); break;
+        case TILE_STAIRS_UP:   col = GS_SETREG_RGBAQ(220,200,120,0x80,0); break;
+        case TILE_HOLE:      col = COL_BLACK;        break;
+        case TILE_WORKBENCH: col = COL_BROWN;        break;
+        case TILE_FURNACE:   col = COL_STONE_COL;    break;
+        case TILE_FARMLAND:  col = GS_SETREG_RGBAQ(100,60,20,0x80,0); break;
+        case TILE_WHEAT:     col = COL_YELLOW;       break;
+        case TILE_PORTAL:    col = COL_PURPLE;       break;
+        case TILE_CLOUD:     col = COL_WHITE;        break;
+        default:             col = COL_DARK_GRAY;    break;
     }
 
-    // Night darkening (simple - just a dark rect if night)
-    if (bright < 70) {
-        draw_rect(g, x, y, s, s, GS_SETREG_RGBAQ(0,0,20,0x40,0));
-    }
+    draw_rect(g, x, y, s, s, col);
 }
 
 // ---- ENTITY RENDERER ----
@@ -377,7 +305,10 @@ void render_inventory(GSGLOBAL *g, GameState *gs) {
     }
     draw_text(g, "Tri=Close", 270, 330, COL_GRAY);
 
-    if (input_pressed(gs, PAD_TRIANGLE)) gs->state = STATE_PLAYING;
+    if (input_pressed(gs, PAD_TRIANGLE) && gs->stateTimer == 0) {
+        gs->state = STATE_PLAYING;
+        gs->stateTimer = 20;
+    }
 }
 
 // ---- CRAFTING ----

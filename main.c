@@ -33,6 +33,9 @@ void game_tick(GameState *gs2) {
     gs2->tickCount++;
     gs2->dayTime = (gs2->dayTime + 1) % 4800;
 
+    // Debounce timer
+    if (gs2->stateTimer > 0) gs2->stateTimer--;
+
     if (input_pressed(gs2, PAD_START)) {
         if (gs2->state == STATE_PLAYING) gs2->state = STATE_PAUSE;
         else if (gs2->state == STATE_PAUSE) gs2->state = STATE_PLAYING;
