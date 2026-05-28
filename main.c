@@ -99,6 +99,7 @@ int main(void) {
     game_init(&gs);
 
     while(1) {
+        gsKit_queue_reset(gsGlobal);
         input_update(&gs);
         game_tick(&gs);
         game_render(&gs, gsGlobal);

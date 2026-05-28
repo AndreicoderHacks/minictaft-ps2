@@ -437,21 +437,6 @@ static void render_pause(GSGLOBAL *g, GameState *gs) {
 void game_render(GameState *gs, GSGLOBAL *g) {
     gsKit_clear(g, COL_BLACK);
 
-    // DEBUG - afiseaza starea pad-ului
-    {
-        // Afiseaza padCurrent ca hex in coltul stanga sus
-        u32 pad = gs->padCurrent;
-        char hex[12];
-        hex[0] = 'P'; hex[1] = ':';
-        hex[2] = "0123456789ABCDEF"[(pad >> 12) & 0xF];
-        hex[3] = "0123456789ABCDEF"[(pad >>  8) & 0xF];
-        hex[4] = "0123456789ABCDEF"[(pad >>  4) & 0xF];
-        hex[5] = "0123456789ABCDEF"[(pad      ) & 0xF];
-        hex[6] = 0;
-        draw_rect(g, 0, 0, 100, 14, COL_BLACK);
-        draw_text(g, hex, 2, 2, COL_YELLOW);
-    }
-
     if (gs->state == STATE_MENU) {
         render_menu(g, gs);
         return;
