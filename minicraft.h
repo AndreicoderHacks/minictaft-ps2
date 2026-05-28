@@ -47,8 +47,8 @@
 #define TILE_SIZE       16
 
 // ---- World ----
-#define WORLD_W         64
-#define WORLD_H         64
+#define WORLD_W         32
+#define WORLD_H         32
 
 // ---- Tile types ----
 #define TILE_GRASS      0
