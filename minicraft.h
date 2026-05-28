@@ -47,8 +47,13 @@
 #define TILE_SIZE       16
 
 // ---- World ----
-#define WORLD_W         32
-#define WORLD_H         32
+#define WORLD_W         48
+#define WORLD_H         48
+
+// 60 FPS target: 4 min zi, 2 min noapte.
+#define DAY_LENGTH      14400
+#define NIGHT_LENGTH    7200
+#define CYCLE_LENGTH    (DAY_LENGTH + NIGHT_LENGTH)
 
 // ---- Tile types ----
 #define TILE_GRASS      0
@@ -76,6 +81,8 @@
 #define TILE_PORTAL     22
 #define TILE_HOLE       23
 #define TILE_HARDROCK   24
+#define TILE_DOOR       25
+#define TILE_TORCH      26
 
 // ---- Entity types ----
 #define ENT_PLAYER      0
@@ -111,7 +118,9 @@
 #define ITEM_SEEDS      22
 #define ITEM_COAL       23
 #define ITEM_BED        24
-#define ITEM_COUNT      25
+#define ITEM_DOOR       25
+#define ITEM_TORCH      26
+#define ITEM_COUNT      27
 
 // ---- Directions ----
 #define DIR_UP          0
@@ -205,7 +214,7 @@ typedef struct {
     // Time
     int tickCount;
     int gameTick;
-    int dayTime;        // 0-4800, night at 2400+
+    int dayTime;        // 0-CYCLE_LENGTH, night starts at DAY_LENGTH
 
     // Game state
     int state;
@@ -215,6 +224,12 @@ typedef struct {
     // Input (current and previous frame)
     u32 padCurrent;
     u32 padPrev;
+    int analogX;
+    int analogY;
+
+    // Quick-save in RAM status
+    int hasQuickSave;
+    int saveMessageTimer;
 
     // Score / stats
     int score;

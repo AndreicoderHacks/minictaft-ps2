@@ -24,6 +24,7 @@ int world_isSolid(int tile) {
         case TILE_HARDROCK:
         case TILE_WORKBENCH:
         case TILE_FURNACE:
+        case TILE_DOOR:
             return 1;
         default:
             return 0;
@@ -80,7 +81,7 @@ static void gen_surface(Level *level, unsigned int seed) {
     }
 
     // Copaci
-    for (int i = 0; i < 120; i++) {
+    for (int i = 0; i < 180; i++) {
         int tx = rng_range(2, WORLD_W - 2);
         int ty = rng_range(2, WORLD_H - 2);
         if (world_getTile(level, tx, ty) == TILE_GRASS)
@@ -144,7 +145,7 @@ static void gen_cave(Level *level, int depth, unsigned int seed) {
     }
 
     // Minereuri
-    for (int i = 0; i < 60; i++) {
+    for (int i = 0; i < 90; i++) {
         int tx = rng_range(1, WORLD_W-1);
         int ty = rng_range(1, WORLD_H-1);
         if (world_getTile(level, tx, ty) == TILE_STONE) {
@@ -154,7 +155,7 @@ static void gen_cave(Level *level, int depth, unsigned int seed) {
         }
     }
     // Rock ore
-    for (int i = 0; i < 80; i++) {
+    for (int i = 0; i < 120; i++) {
         int tx = rng_range(1, WORLD_W-1);
         int ty = rng_range(1, WORLD_H-1);
         if (world_getTile(level, tx, ty) == TILE_STONE)

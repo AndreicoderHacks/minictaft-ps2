@@ -129,9 +129,8 @@ void draw_text(GSGLOBAL *g, const char *str, int x, int y, u64 color) {
 // ---- Utility ----
 int brightness_day(int dayTime) {
     // Returns 0-100 (integer, no float)
-    if (dayTime < 2400) return 100;
-    if (dayTime < 3600) return 100 - (dayTime - 2400) * 70 / 1200;
-    return 30;
+    if (dayTime < DAY_LENGTH) return 100;
+    return 35;
 }
 
 const char* item_getName(int item) {
@@ -140,7 +139,7 @@ const char* item_getName(int item) {
         "Wheat","Bread","Apple",
         "Wood Pick","Stone Pick","Iron Pick","Gold Pick","Gem Pick",
         "Wood Sword","Stone Sword","Iron Sword","Gold Sword","Gem Sword",
-        "Workbench","Furnace","Lantern","Seeds","Coal","Bed"
+        "Workbench","Furnace","Lantern","Seeds","Coal","Bed","Door","Torch"
     };
     if (item < 0 || item >= ITEM_COUNT) return "???";
     return names[item];
@@ -158,6 +157,8 @@ u64 item_getColor(int item) {
         case ITEM_APPLE:        return COL_RED;
         case ITEM_COAL:         return COL_DARK_GRAY;
         case ITEM_BED:          return GS_SETREG_RGBAQ(180,40,60,0x80,0);
+        case ITEM_DOOR:         return COL_BROWN;
+        case ITEM_TORCH:        return COL_ORANGE;
         case ITEM_WOOD_SWORD:
         case ITEM_WOOD_TOOL:    return COL_BROWN;
         case ITEM_STONE_SWORD:
@@ -224,6 +225,14 @@ static void draw_item_icon(GSGLOBAL *g, int item, int x, int y) {
             draw_rect(g, x+2, y+3, 5, 4, COL_WHITE);
             draw_rect(g, x+2, y+12, 12, 2, COL_BROWN);
             break;
+        case ITEM_DOOR:
+            draw_rect(g, x+4, y+2, 8, 13, COL_BROWN);
+            draw_rect(g, x+9, y+8, 2, 2, COL_YELLOW);
+            break;
+        case ITEM_TORCH:
+            draw_rect(g, x+7, y+5, 2, 9, COL_BROWN);
+            draw_rect(g, x+5, y+2, 6, 5, COL_ORANGE);
+            break;
         default:
             draw_rect(g, x+3, y+3, 10, 10, c);
             break;
@@ -262,6 +271,8 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
         case TILE_HOLE:      col = COL_BLACK;        break;
         case TILE_WORKBENCH: col = COL_BROWN;        break;
         case TILE_FURNACE:   col = COL_STONE_COL;    break;
+        case TILE_DOOR:      col = COL_BROWN;        break;
+        case TILE_TORCH:     col = COL_DIRT_COL;     break;
         case TILE_FARMLAND:  col = GS_SETREG_RGBAQ(100,60,20,0x80,0); break;
         case TILE_WHEAT:     col = COL_YELLOW;       break;
         case TILE_PORTAL:    col = COL_PURPLE;       break;
@@ -315,6 +326,15 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
         case TILE_FURNACE:
             draw_rect(g, x+3, y+3, 10, 10, COL_DARK_GRAY);
             draw_rect(g, x+5, y+6, 6, 4, COL_BLACK);
+            break;
+        case TILE_DOOR:
+            draw_rect(g, x+4, y+1, 8, 14, COL_BROWN);
+            draw_rect(g, x+10, y+8, 2, 2, COL_YELLOW);
+            break;
+        case TILE_TORCH:
+            draw_rect(g, x+7, y+5, 2, 10, COL_BROWN);
+            draw_rect(g, x+5, y+2, 6, 5, COL_ORANGE);
+            draw_rect(g, x+4, y+1, 8, 2, COL_YELLOW);
             break;
         case TILE_STAIRS_DOWN:
         case TILE_STAIRS_UP:
@@ -406,8 +426,11 @@ void render_hud(GSGLOBAL *g, GameState *gs) {
         draw_text(g, levelNames[gs->currentLevel], SCREEN_W/2-30, 8, COL_WHITE);
 
     // Day/night
-    draw_text(g, (gs->dayTime < 2400) ? "DAY" : "NIGHT",
-              8, y-16, (gs->dayTime < 2400) ? COL_YELLOW : COL_LIGHT_BLUE);
+    draw_text(g, (gs->dayTime < DAY_LENGTH) ? "DAY" : "NIGHT",
+              8, y-16, (gs->dayTime < DAY_LENGTH) ? COL_YELLOW : COL_LIGHT_BLUE);
+    if (gs->saveMessageTimer > 0) {
+        draw_text(g, gs->hasQuickSave ? "SPULB SAVE" : "SAVE", SCREEN_W-130, y-16, COL_YELLOW);
+    }
 }
 
 // ---- INVENTORY ----
@@ -449,14 +472,14 @@ void render_crafting(GSGLOBAL *g, GameState *gs) {
     draw_text(g, "CRAFTING", bx+90, by+8, COL_YELLOW);
 
     int count = crafting_getRecipeCount();
-    for (int i = 0; i < count && i < 15; i++) {
-        int sy2 = by + 28 + i*20;
+    for (int i = 0; i < count && i < 18; i++) {
+        int sy2 = by + 24 + i*18;
         int canCraft = crafting_canCraft(gs, i);
         u64 col = (i == craftingSelected) ? COL_YELLOW :
                   (canCraft ? COL_WHITE : COL_DARK_GRAY);
         if (i == craftingSelected)
-            draw_rect(g, bx+4, sy2, 272, 18, GS_SETREG_RGBAQ(40,40,0,0x80,0));
-        draw_text(g, crafting_getName(i), bx+8, sy2+4, col);
+            draw_rect(g, bx+4, sy2, 272, 16, GS_SETREG_RGBAQ(40,40,0,0x80,0));
+        draw_text(g, crafting_getName(i), bx+8, sy2+3, col);
     }
     draw_text(g, "X=Craft  Tri=Close", bx+60, by+340, COL_GRAY);
 

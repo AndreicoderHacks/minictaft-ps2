@@ -78,6 +78,50 @@ static int player_miningPower(GameState *gs) {
     }
 }
 
+static int player_blockSolid(Level *lv, int tx, int ty) {
+    int tile = world_getTile(lv, tx, ty);
+    int data = world_getData(lv, tx, ty);
+    if (tile == TILE_DOOR) return data == 200; // 200 inchisa, 201 deschisa
+    if (tile == TILE_WORKBENCH || tile == TILE_FURNACE) return 1;
+    if ((tile == TILE_WOOD || tile == TILE_STONE) && data >= 200) return 1;
+    return 0;
+}
+
+static int player_canStand(Level *lv, int px, int py) {
+    int tx = px / TILE_SIZE;
+    int ty = py / TILE_SIZE;
+    if (tx < 1 || tx >= WORLD_W-1 || ty < 1 || ty >= WORLD_H-1) return 0;
+    return !player_blockSolid(lv, tx, ty);
+}
+
+static void regenerate_surface(Level *lv) {
+    int added = 0;
+    for (int i = 0; i < 30 && added < 8; i++) {
+        int tx = rng_range(2, WORLD_W-2);
+        int ty = rng_range(2, WORLD_H-2);
+        if (world_getTile(lv, tx, ty) == TILE_GRASS) {
+            world_setTile(lv, tx, ty, TILE_TREE, 6);
+            added++;
+        }
+    }
+}
+
+static void regenerate_cave(Level *lv, int depth) {
+    int added = 0;
+    for (int i = 0; i < 40 && added < 10; i++) {
+        int tx = rng_range(2, WORLD_W-2);
+        int ty = rng_range(2, WORLD_H-2);
+        if (world_getTile(lv, tx, ty) == TILE_STONE) {
+            int type = TILE_ROCK_ORE;
+            if (depth == 1 && rng_range(0, 3) == 0) type = TILE_IRON_ORE;
+            if (depth == 2 && rng_range(0, 3) == 0) type = TILE_GOLD_ORE;
+            if (depth >= 3 && rng_range(0, 4) == 0) type = TILE_GEM_ORE;
+            world_setTile(lv, tx, ty, type, 12);
+            added++;
+        }
+    }
+}
+
 // Attack a tile in facing direction
 static void player_mineTile(GameState *gs, int tx, int ty) {
     Level *lv  = &gs->levels[gs->currentLevel];
@@ -100,7 +144,7 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
             }
             break;
         case TILE_WOOD:
-            if (data <= 0) data = 3;
+            if (data <= 0 || data >= 200) data = 3;
             data -= (power + 1);
             if (data <= 0) {
                 world_setTile(lv, tx, ty, TILE_GRASS, 0);
@@ -109,8 +153,15 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
                 world_setTile(lv, tx, ty, TILE_WOOD, data);
             }
             break;
+        case TILE_DOOR:
+            world_setTile(lv, tx, ty, TILE_DOOR, (data == 200) ? 201 : 200);
+            break;
+        case TILE_TORCH:
+            world_setTile(lv, tx, ty, TILE_GRASS, 0);
+            player_addItem(gs, ITEM_TORCH, 1);
+            break;
         case TILE_STONE:
-            if (data <= 0) data = 4;
+            if (data <= 0 || data >= 200) data = 4;
             data -= (power > 0) ? power : 1;
             if (data <= 0) {
                 world_setTile(lv, tx, ty, TILE_DIRT, 0);
@@ -195,6 +246,7 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
             if (gs->currentLevel < NUM_LEVELS - 1) {
                 gs->currentLevel++;
                 gs->player.level = gs->currentLevel;
+                regenerate_cave(&gs->levels[gs->currentLevel], gs->currentLevel);
                 // Spawn player near stairs up on new level
                 for (int y = 0; y < WORLD_H && !gs->player.alive; y++) {
                     for (int x = 0; x < WORLD_W; x++) {
@@ -212,6 +264,8 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
                 gs->currentLevel--;
                 gs->player.level = gs->currentLevel;
                 gs->player.alive = 1;
+                if (gs->currentLevel == LEVEL_SURFACE)
+                    regenerate_surface(&gs->levels[LEVEL_SURFACE]);
             }
             break;
         default:
@@ -289,8 +343,10 @@ void player_tick(GameState *gs) {
     if (pad & PAD_LEFT)  { mx = -speed; p->dir = DIR_LEFT;  }
     if (pad & PAD_RIGHT) { mx =  speed; p->dir = DIR_RIGHT; }
 
-    p->x += mx;
-    p->y += my;
+    int nx = p->x + mx;
+    int ny = p->y + my;
+    if (player_canStand(lv, nx, p->y)) p->x = nx;
+    if (player_canStand(lv, p->x, ny)) p->y = ny;
     
     // Lava damage
     int ptx = p->x / TILE_SIZE;
@@ -335,13 +391,14 @@ void player_tick(GameState *gs) {
             if (p->health > p->maxHealth) p->health = p->maxHealth;
         } else if (item == ITEM_BED) {
             // Bed: skip night and heal a little. No placement yet, very stable.
-            if (gs->dayTime >= 2400) {
+            if (gs->dayTime >= DAY_LENGTH) {
                 gs->dayTime = 0;
                 p->health += 3;
                 if (p->health > p->maxHealth) p->health = p->maxHealth;
             }
         } else if (item == ITEM_WOOD || item == ITEM_STONE ||
-                   item == ITEM_WORKBENCH || item == ITEM_FURNACE) {
+                   item == ITEM_WORKBENCH || item == ITEM_FURNACE ||
+                   item == ITEM_DOOR || item == ITEM_TORCH) {
             // Place workbench
             int fx = ptx, fy = pty;
             switch(p->dir) {
@@ -355,7 +412,12 @@ void player_tick(GameState *gs) {
                 if (item == ITEM_WOOD) placeTile = TILE_WOOD;
                 else if (item == ITEM_STONE) placeTile = TILE_STONE;
                 else if (item == ITEM_FURNACE) placeTile = TILE_FURNACE;
-                world_setTile(lv, fx, fy, placeTile, 0);
+                else if (item == ITEM_DOOR) placeTile = TILE_DOOR;
+                else if (item == ITEM_TORCH) placeTile = TILE_TORCH;
+                int placeData = (item == ITEM_WOOD || item == ITEM_STONE ||
+                                 item == ITEM_WORKBENCH || item == ITEM_FURNACE ||
+                                 item == ITEM_DOOR) ? 200 : 0;
+                world_setTile(lv, fx, fy, placeTile, placeData);
                 player_removeItem(gs, item, 1);
             }
         }

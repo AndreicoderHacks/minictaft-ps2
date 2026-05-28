@@ -1,6 +1,8 @@
 #include "minicraft.h"
 
 static GameState gs;
+static GameState quickSave;
+static int quickSaveValid = 0;
 
 void game_init(GameState *gs2) {
     memset(gs2, 0, sizeof(GameState));
@@ -31,10 +33,26 @@ void game_init(GameState *gs2) {
 
 void game_tick(GameState *gs2) {
     gs2->tickCount++;
-    gs2->dayTime = (gs2->dayTime + 1) % 4800;
+    gs2->dayTime = (gs2->dayTime + 1) % CYCLE_LENGTH;
 
     // Debounce timer
     if (gs2->stateTimer > 0) gs2->stateTimer--;
+    if (gs2->saveMessageTimer > 0) gs2->saveMessageTimer--;
+
+    // Select = quick save. Start + Select = quick load.
+    if (input_pressed(gs2, PAD_SELECT)) {
+        if ((gs2->padCurrent & PAD_START) && quickSaveValid) {
+            GameState loaded = quickSave;
+            memcpy(gs2, &loaded, sizeof(GameState));
+            gs2->saveMessageTimer = 120;
+        } else {
+            quickSave = *gs2;
+            quickSave.hasQuickSave = 1;
+            quickSaveValid = 1;
+            gs2->hasQuickSave = 1;
+            gs2->saveMessageTimer = 120;
+        }
+    }
 
     if (input_pressed(gs2, PAD_START)) {
         if (gs2->state == STATE_PLAYING) gs2->state = STATE_PAUSE;

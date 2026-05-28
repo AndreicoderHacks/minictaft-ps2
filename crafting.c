@@ -31,6 +31,8 @@ static const Recipe recipes[] = {
     // Food
     { "Bread",          ITEM_BREAD,       1,  ITEM_WHEAT, 3, ITEM_NONE, 0, ITEM_NONE, 0 },
     { "Bed",            ITEM_BED,         1,  ITEM_WOOD, 12, ITEM_NONE, 0, ITEM_NONE, 0 },
+    { "Door",           ITEM_DOOR,        1,  ITEM_WOOD, 6,  ITEM_NONE, 0, ITEM_NONE, 0 },
+    { "Torch",          ITEM_TORCH,       4,  ITEM_WOOD, 1,  ITEM_COAL, 1, ITEM_NONE, 0 },
 };
 
 #define RECIPE_COUNT (sizeof(recipes) / sizeof(recipes[0]))

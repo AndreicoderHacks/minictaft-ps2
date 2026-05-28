@@ -13,6 +13,8 @@ void input_init(void) {
 void input_update(GameState *gs) {
     gs->padPrev = gs->padCurrent;
     gs->padCurrent = 0;
+    gs->analogX = 0;
+    gs->analogY = 0;
 
     struct padButtonStatus buttons;
     int state = padGetState(0, 0);
@@ -27,6 +29,15 @@ void input_update(GameState *gs) {
             } else {
                 gs->padCurrent = 0;
             }
+
+            // Analog stanga: valori in jur de 128 sunt centru.
+            // Adaugam aceleasi bituri ca D-pad-ul, ca restul codului sa ramana simplu.
+            int lx = (int)buttons.ljoy_h - 128;
+            int ly = (int)buttons.ljoy_v - 128;
+            if (lx < -40) { gs->padCurrent |= PAD_LEFT;  gs->analogX = -1; }
+            if (lx >  40) { gs->padCurrent |= PAD_RIGHT; gs->analogX =  1; }
+            if (ly < -40) { gs->padCurrent |= PAD_UP;    gs->analogY = -1; }
+            if (ly >  40) { gs->padCurrent |= PAD_DOWN;  gs->analogY =  1; }
         }
     }
 }

@@ -244,6 +244,8 @@ void airwizard_ai(GameState *gs, int idx) {
 
 // ---- SPAWN RANDOM MOBS ----
 static void try_spawn_mob(GameState *gs) {
+    if (gs->currentLevel == LEVEL_SURFACE && gs->dayTime < DAY_LENGTH) return;
+
     Level *lv = &gs->levels[gs->currentLevel];
     int px = gs->player.x / TILE_SIZE;
     int py = gs->player.y / TILE_SIZE;
@@ -268,11 +270,10 @@ static void try_spawn_mob(GameState *gs) {
         if (tile == TILE_GRASS || tile == TILE_DIRT ||
             tile == TILE_STONE || tile == TILE_CLOUD) {
             // Night = more zombies
-            int isNight = (gs->dayTime > 2400);
             int r = rng_range(0, 100);
             int type;
             if (gs->currentLevel == 0) {
-                type = (isNight || r < 50) ? ENT_ZOMBIE : ENT_SLIME;
+                type = (r < 75) ? ENT_ZOMBIE : ENT_SLIME;
             } else {
                 type = (r < 70) ? ENT_ZOMBIE : ENT_SLIME;
             }
@@ -284,6 +285,14 @@ static void try_spawn_mob(GameState *gs) {
 
 // ---- TICK ALL ----
 void entity_tickAll(GameState *gs) {
+    // Pe suprafata mobii exista doar noaptea. Ziua ii curatam pentru FPS si gameplay mai fair.
+    if (gs->currentLevel == LEVEL_SURFACE && gs->dayTime < DAY_LENGTH) {
+        for (int i = 0; i < gs->entityCount; i++) {
+            if (gs->entities[i].alive && gs->entities[i].level == LEVEL_SURFACE)
+                gs->entities[i].alive = 0;
+        }
+    }
+
     // Spawn mobs occasionally
     if ((gs->tickCount & 255) == 0) try_spawn_mob(gs);
 
