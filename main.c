@@ -92,14 +92,13 @@ int main(void) {
     dmaKit_chan_init(DMA_CHANNEL_GIF);
 
     gsKit_init_screen(gsGlobal);
-    gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
+    gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
     input_init();
     rng_seed(0xCAFE1234);
     game_init(&gs);
 
     while(1) {
-        gsKit_queue_reset(gsGlobal);
         input_update(&gs);
         game_tick(&gs);
         game_render(&gs, gsGlobal);
