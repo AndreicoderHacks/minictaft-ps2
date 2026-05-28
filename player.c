@@ -95,7 +95,7 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
                 if (rng_range(0, 5) == 0) player_addItem(gs, ITEM_APPLE, 1);
             } else {
                 world_setTile(lv, tx, ty, TILE_TREE, data);
-                particle_spawn(gs, tx*TILE_SIZE+8, ty*TILE_SIZE+8, rng_range(-2,2), -2, COL_BROWN, 20);
+                // particle_spawn oprit temporar pentru stabilitate.
             }
             break;
         case TILE_ROCK_ORE:
@@ -106,7 +106,7 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
                     player_addItem(gs, ITEM_STONE, 2 + rng_range(0, 2));
                 } else {
                     world_setTile(lv, tx, ty, TILE_ROCK_ORE, data);
-                    particle_spawn(gs, tx*TILE_SIZE+8, ty*TILE_SIZE+8, rng_range(-2,2), -2, COL_GRAY, 20);
+                    // particle_spawn oprit temporar pentru stabilitate.
                 }
             }
             break;
@@ -242,7 +242,7 @@ void player_hurt(GameState *gs, int damage) {
     if (p->hurtTime > 0) return;
     p->health -= damage;
     p->hurtTime = 30;
-    particle_spawn(gs, p->x, p->y, rng_range(-3,3), -3, COL_RED, 25);
+    // Particulele sunt oprite in build-ul stabil; evitam umplerea bufferului GS.
     if (p->health <= 0) {
         p->health = 0;
         gs->state = STATE_DEAD;
@@ -259,7 +259,7 @@ void player_tick(GameState *gs) {
 
   // --- Movement ---
     int mx = 0, my = 0;
-    int speed = 2;
+    int speed = 3;
 
     u32 pad = gs->padCurrent;
     if (pad & PAD_UP)    { my = -speed; p->dir = DIR_UP;    }
@@ -289,9 +289,7 @@ void player_tick(GameState *gs) {
         }
     }
 
-    // Inventory cycling
-    if (input_pressed(gs, PAD_R1)) gs->selectedSlot = (gs->selectedSlot + 1) % INV_SIZE;
-    if (input_pressed(gs, PAD_L1)) gs->selectedSlot = (gs->selectedSlot + INV_SIZE - 1) % INV_SIZE;
+    // Inventory cycling dezactivat temporar: pe unele pad-uri L1/R1 se suprapun cu D-pad.
 
     // Attack / interact
     if (input_pressed(gs, PAD_CROSS)) player_attack(gs);

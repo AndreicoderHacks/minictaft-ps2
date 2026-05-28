@@ -497,8 +497,8 @@ void game_render(GameState *gs, GSGLOBAL *g) {
     // Player
     {
         Entity *p = &gs->player;
-        int sx2 = SCREEN_W/2;
-        int sy2 = (SCREEN_H-40)/2;
+        int sx2 = p->x - gs->camX + SCREEN_W/2;
+        int sy2 = p->y - gs->camY + (SCREEN_H-40)/2;
         u64 bodyCol = (p->hurtTime > 0 && (p->hurtTime & 2)) ? COL_RED : COL_WHITE;
         draw_rect(g, sx2-4, sy2-6, 8, 12, bodyCol);
         draw_rect(g, sx2-4, sy2-14, 8, 10, GS_SETREG_RGBAQ(220,180,140,0x80,0));
@@ -509,8 +509,8 @@ void game_render(GameState *gs, GSGLOBAL *g) {
     // HUD
     render_hud(g, gs);
 
-    // Minimap
-    render_minimap(g, gs);
+    // Minimap oprit temporar pentru stabilitate pe PS2 real.
+    // render_minimap(g, gs);
 
     // Overlays
     if (gs->state == STATE_INVENTORY) render_inventory(g, gs);

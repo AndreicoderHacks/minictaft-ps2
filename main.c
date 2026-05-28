@@ -43,8 +43,10 @@ void game_tick(GameState *gs2) {
 
     if (gs2->state == STATE_PLAYING) {
         player_tick(gs2);
-        entity_tickAll(gs2);
-        particle_tickAll(gs2);
+        // Temporar oprite pentru build-ul stabil pe PS2 real.
+        // Le pornim inapoi dupa ce miscarea si mapa mica sunt 100% stabile.
+        // entity_tickAll(gs2);
+        // particle_tickAll(gs2);
 
         // Camera smooth follow
         gs2->camX += (gs2->player.x - gs2->camX) / 4;
@@ -53,10 +55,22 @@ void game_tick(GameState *gs2) {
         // Clamp camera
         int halfW = SCREEN_W / 2;
         int halfH = (SCREEN_H - 40) / 2;
-        if (gs2->camX < halfW) gs2->camX = halfW;
-        if (gs2->camY < halfH) gs2->camY = halfH;
-        if (gs2->camX > WORLD_W * TILE_SIZE - halfW) gs2->camX = WORLD_W * TILE_SIZE - halfW;
-        if (gs2->camY > WORLD_H * TILE_SIZE - halfH) gs2->camY = WORLD_H * TILE_SIZE - halfH;
+        int worldPxW = WORLD_W * TILE_SIZE;
+        int worldPxH = WORLD_H * TILE_SIZE;
+
+        if (worldPxW <= SCREEN_W) {
+            gs2->camX = worldPxW / 2;
+        } else {
+            if (gs2->camX < halfW) gs2->camX = halfW;
+            if (gs2->camX > worldPxW - halfW) gs2->camX = worldPxW - halfW;
+        }
+
+        if (worldPxH <= (SCREEN_H - 40)) {
+            gs2->camY = worldPxH / 2;
+        } else {
+            if (gs2->camY < halfH) gs2->camY = halfH;
+            if (gs2->camY > worldPxH - halfH) gs2->camY = worldPxH - halfH;
+        }
     }
 }
 
