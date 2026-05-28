@@ -87,6 +87,7 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
 
     switch(tile) {
         case TILE_TREE:
+            if (data <= 0) data = 6;
             data -= (power + 1);
             if (data <= 0) {
                 world_setTile(lv, tx, ty, TILE_GRASS, 0);
@@ -98,7 +99,28 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
                 // particle_spawn oprit temporar pentru stabilitate.
             }
             break;
+        case TILE_WOOD:
+            if (data <= 0) data = 3;
+            data -= (power + 1);
+            if (data <= 0) {
+                world_setTile(lv, tx, ty, TILE_GRASS, 0);
+                player_addItem(gs, ITEM_WOOD, 1);
+            } else {
+                world_setTile(lv, tx, ty, TILE_WOOD, data);
+            }
+            break;
+        case TILE_STONE:
+            if (data <= 0) data = 4;
+            data -= (power > 0) ? power : 1;
+            if (data <= 0) {
+                world_setTile(lv, tx, ty, TILE_DIRT, 0);
+                player_addItem(gs, ITEM_STONE, 1 + rng_range(0, 2));
+            } else {
+                world_setTile(lv, tx, ty, TILE_STONE, data);
+            }
+            break;
         case TILE_ROCK_ORE:
+            if (data <= 0) data = 8;
             if (power >= 0) {
                 data -= (power > 0) ? power : 1;
                 if (data <= 0) {
@@ -289,12 +311,11 @@ void player_tick(GameState *gs) {
         }
     }
 
-    // Inventory cycling. L1/R1 sunt controalele normale; Circle/Select sunt backup
-    // in caz ca un controller clone raporteaza shoulder-ele diferit.
-    if (input_pressed(gs, PAD_R1) || input_pressed(gs, PAD_CIRCLE)) {
+    // Inventory cycling
+    if (input_pressed(gs, PAD_R1)) {
         gs->selectedSlot = (gs->selectedSlot + 1) % INV_SIZE;
     }
-    if (input_pressed(gs, PAD_L1) || input_pressed(gs, PAD_SELECT)) {
+    if (input_pressed(gs, PAD_L1)) {
         gs->selectedSlot = (gs->selectedSlot + INV_SIZE - 1) % INV_SIZE;
     }
 
@@ -312,7 +333,15 @@ void player_tick(GameState *gs) {
             player_removeItem(gs, ITEM_BREAD, 1);
             p->health += 4;
             if (p->health > p->maxHealth) p->health = p->maxHealth;
-        } else if (item == ITEM_WORKBENCH) {
+        } else if (item == ITEM_BED) {
+            // Bed: skip night and heal a little. No placement yet, very stable.
+            if (gs->dayTime >= 2400) {
+                gs->dayTime = 0;
+                p->health += 3;
+                if (p->health > p->maxHealth) p->health = p->maxHealth;
+            }
+        } else if (item == ITEM_WOOD || item == ITEM_STONE ||
+                   item == ITEM_WORKBENCH || item == ITEM_FURNACE) {
             // Place workbench
             int fx = ptx, fy = pty;
             switch(p->dir) {
@@ -322,20 +351,12 @@ void player_tick(GameState *gs) {
                 case DIR_RIGHT: fx++; break;
             }
             if (!world_isSolid(world_getTile(lv, fx, fy))) {
-                world_setTile(lv, fx, fy, TILE_WORKBENCH, 0);
-                player_removeItem(gs, ITEM_WORKBENCH, 1);
-            }
-        } else if (item == ITEM_FURNACE) {
-            int fx = ptx, fy = pty;
-            switch(p->dir) {
-                case DIR_UP:    fy--; break;
-                case DIR_DOWN:  fy++; break;
-                case DIR_LEFT:  fx--; break;
-                case DIR_RIGHT: fx++; break;
-            }
-            if (!world_isSolid(world_getTile(lv, fx, fy))) {
-                world_setTile(lv, fx, fy, TILE_FURNACE, 0);
-                player_removeItem(gs, ITEM_FURNACE, 1);
+                int placeTile = TILE_WORKBENCH;
+                if (item == ITEM_WOOD) placeTile = TILE_WOOD;
+                else if (item == ITEM_STONE) placeTile = TILE_STONE;
+                else if (item == ITEM_FURNACE) placeTile = TILE_FURNACE;
+                world_setTile(lv, fx, fy, placeTile, 0);
+                player_removeItem(gs, item, 1);
             }
         }
     }

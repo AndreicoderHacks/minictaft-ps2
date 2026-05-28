@@ -110,7 +110,8 @@
 #define ITEM_LANTERN    21
 #define ITEM_SEEDS      22
 #define ITEM_COAL       23
-#define ITEM_COUNT      24
+#define ITEM_BED        24
+#define ITEM_COUNT      25
 
 // ---- Directions ----
 #define DIR_UP          0

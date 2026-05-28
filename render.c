@@ -140,7 +140,7 @@ const char* item_getName(int item) {
         "Wheat","Bread","Apple",
         "Wood Pick","Stone Pick","Iron Pick","Gold Pick","Gem Pick",
         "Wood Sword","Stone Sword","Iron Sword","Gold Sword","Gem Sword",
-        "Workbench","Furnace","Lantern","Seeds","Coal"
+        "Workbench","Furnace","Lantern","Seeds","Coal","Bed"
     };
     if (item < 0 || item >= ITEM_COUNT) return "???";
     return names[item];
@@ -157,6 +157,7 @@ u64 item_getColor(int item) {
         case ITEM_BREAD:        return GS_SETREG_RGBAQ(200,150,80,0x80,0);
         case ITEM_APPLE:        return COL_RED;
         case ITEM_COAL:         return COL_DARK_GRAY;
+        case ITEM_BED:          return GS_SETREG_RGBAQ(180,40,60,0x80,0);
         case ITEM_WOOD_SWORD:
         case ITEM_WOOD_TOOL:    return COL_BROWN;
         case ITEM_STONE_SWORD:
@@ -177,14 +178,15 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
     u64 col;
 
     switch(tile) {
-        case TILE_GRASS:     col = COL_DARK_GREEN; break;
-        case TILE_DIRT:      col = COL_DIRT_COL;   break;
-        case TILE_SAND:      col = COL_SAND;        break;
-        case TILE_WATER:     col = COL_BLUE;        break;
+        case TILE_GRASS:     col = (bright < 70) ? GS_SETREG_RGBAQ(8,45,18,0x80,0) : COL_DARK_GREEN; break;
+        case TILE_DIRT:      col = (bright < 70) ? GS_SETREG_RGBAQ(70,45,30,0x80,0) : COL_DIRT_COL;   break;
+        case TILE_SAND:      col = (bright < 70) ? GS_SETREG_RGBAQ(105,95,65,0x80,0) : COL_SAND;      break;
+        case TILE_WATER:     col = (bright < 70) ? GS_SETREG_RGBAQ(15,30,95,0x80,0) : COL_BLUE;       break;
         case TILE_LAVA:      col = COL_LAVA_COL;    break;
-        case TILE_STONE:     col = COL_STONE_COL;   break;
+        case TILE_STONE:     col = (bright < 70) ? GS_SETREG_RGBAQ(75,75,85,0x80,0) : COL_STONE_COL;  break;
         case TILE_HARDROCK:  col = COL_DARK_GRAY;   break;
-        case TILE_TREE:      col = COL_GREEN;        break;
+        case TILE_TREE:      col = (bright < 70) ? GS_SETREG_RGBAQ(15,70,20,0x80,0) : COL_GREEN;      break;
+        case TILE_WOOD:      col = COL_BROWN;        break;
         case TILE_ROCK_ORE:  col = COL_GRAY;         break;
         case TILE_IRON_ORE:  col = GS_SETREG_RGBAQ(200,160,120,0x80,0); break;
         case TILE_GOLD_ORE:  col = COL_YELLOW;       break;
@@ -233,6 +235,11 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
             draw_rect(g, x+6, y+8, 4, 8, COL_BROWN);
             draw_rect(g, x+2, y+2, 12, 10, GS_SETREG_RGBAQ(35,145,35,0x80,0));
             draw_rect(g, x+5, y, 8, 8, GS_SETREG_RGBAQ(55,175,55,0x80,0));
+            break;
+        case TILE_WOOD:
+            draw_rect(g, x, y+3, s, 2, GS_SETREG_RGBAQ(95,55,25,0x80,0));
+            draw_rect(g, x, y+10, s, 2, GS_SETREG_RGBAQ(95,55,25,0x80,0));
+            draw_rect(g, x+6, y, 2, s, GS_SETREG_RGBAQ(170,105,45,0x80,0));
             break;
         case TILE_WORKBENCH:
             draw_rect(g, x+2, y+2, 12, 12, GS_SETREG_RGBAQ(170,105,45,0x80,0));
@@ -371,14 +378,14 @@ void render_crafting(GSGLOBAL *g, GameState *gs) {
     draw_text(g, "CRAFTING", bx+90, by+8, COL_YELLOW);
 
     int count = crafting_getRecipeCount();
-    for (int i = 0; i < count && i < 12; i++) {
-        int sy2 = by + 28 + i*26;
+    for (int i = 0; i < count && i < 15; i++) {
+        int sy2 = by + 28 + i*20;
         int canCraft = crafting_canCraft(gs, i);
         u64 col = (i == craftingSelected) ? COL_YELLOW :
                   (canCraft ? COL_WHITE : COL_DARK_GRAY);
         if (i == craftingSelected)
-            draw_rect(g, bx+4, sy2, 272, 24, GS_SETREG_RGBAQ(40,40,0,0x80,0));
-        draw_text(g, crafting_getName(i), bx+8, sy2+7, col);
+            draw_rect(g, bx+4, sy2, 272, 18, GS_SETREG_RGBAQ(40,40,0,0x80,0));
+        draw_text(g, crafting_getName(i), bx+8, sy2+4, col);
     }
     draw_text(g, "X=Craft  Tri=Close", bx+60, by+340, COL_GRAY);
 

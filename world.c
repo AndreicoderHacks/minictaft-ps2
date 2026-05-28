@@ -18,6 +18,7 @@ int rng_range(int min, int max) {
 int world_isSolid(int tile) {
     switch(tile) {
         case TILE_TREE:
+        case TILE_WOOD:
         case TILE_STONE:
         case TILE_WATER:
         case TILE_HARDROCK:

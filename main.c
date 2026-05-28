@@ -43,9 +43,8 @@ void game_tick(GameState *gs2) {
 
     if (gs2->state == STATE_PLAYING) {
         player_tick(gs2);
-        // Temporar oprite pentru build-ul stabil pe PS2 real.
-        // Le pornim inapoi dupa ce miscarea si mapa mica sunt 100% stabile.
-        // entity_tickAll(gs2);
+        entity_tickAll(gs2);
+        // Particulele raman oprite; mobii sunt inapoi.
         // particle_tickAll(gs2);
 
         // Camera smooth follow

@@ -42,7 +42,7 @@ void entity_hurt(GameState *gs, int idx, int damage) {
     if (!e->alive || e->hurtTime > 0) return;
     e->health -= damage;
     e->hurtTime = 20;
-    particle_spawn(gs, e->x, e->y, rng_range(-3,3), -3, COL_RED, 20);
+    // Particulele raman oprite in build-ul stabil.
     if (e->health <= 0) {
         // Drop loot
         int dropX = e->x / TILE_SIZE;
@@ -254,7 +254,7 @@ static void try_spawn_mob(GameState *gs) {
         if (gs->entities[i].alive && gs->entities[i].level == gs->currentLevel)
             count++;
     }
-    int maxMobs = 8 + gs->currentLevel * 4;
+    int maxMobs = 4 + gs->currentLevel * 2;
     if (count >= maxMobs) return;
 
     // Spawn far from player
@@ -285,7 +285,7 @@ static void try_spawn_mob(GameState *gs) {
 // ---- TICK ALL ----
 void entity_tickAll(GameState *gs) {
     // Spawn mobs occasionally
-    if ((gs->tickCount & 127) == 0) try_spawn_mob(gs);
+    if ((gs->tickCount & 255) == 0) try_spawn_mob(gs);
 
     // Spawn boss if not alive and player is on sky
     if (gs->currentLevel == LEVEL_SKY && gs->airWizardAlive) {
