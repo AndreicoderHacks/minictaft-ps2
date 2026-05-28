@@ -99,8 +99,8 @@ static void player_mineTile(GameState *gs, int tx, int ty) {
             }
             break;
         case TILE_ROCK_ORE:
-            if (power >= 1) {
-                data -= power;
+            if (power >= 0) {
+                data -= (power > 0) ? power : 1;
                 if (data <= 0) {
                     world_setTile(lv, tx, ty, TILE_DIRT, 0);
                     player_addItem(gs, ITEM_STONE, 2 + rng_range(0, 2));
@@ -289,7 +289,14 @@ void player_tick(GameState *gs) {
         }
     }
 
-    // Inventory cycling dezactivat temporar: pe unele pad-uri L1/R1 se suprapun cu D-pad.
+    // Inventory cycling. L1/R1 sunt controalele normale; Circle/Select sunt backup
+    // in caz ca un controller clone raporteaza shoulder-ele diferit.
+    if (input_pressed(gs, PAD_R1) || input_pressed(gs, PAD_CIRCLE)) {
+        gs->selectedSlot = (gs->selectedSlot + 1) % INV_SIZE;
+    }
+    if (input_pressed(gs, PAD_L1) || input_pressed(gs, PAD_SELECT)) {
+        gs->selectedSlot = (gs->selectedSlot + INV_SIZE - 1) % INV_SIZE;
+    }
 
     // Attack / interact
     if (input_pressed(gs, PAD_CROSS)) player_attack(gs);

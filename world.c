@@ -83,7 +83,7 @@ static void gen_surface(Level *level, unsigned int seed) {
         int tx = rng_range(2, WORLD_W - 2);
         int ty = rng_range(2, WORLD_H - 2);
         if (world_getTile(level, tx, ty) == TILE_GRASS)
-            world_setTile(level, tx, ty, TILE_TREE, 15);
+            world_setTile(level, tx, ty, TILE_TREE, 6);
     }
 
     // Scari jos

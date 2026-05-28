@@ -202,6 +202,56 @@ void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
     }
 
     draw_rect(g, x, y, s, s, col);
+
+    // Detalii pixel-art ieftine. Sunt intentionat putine, ca sa ramana stabil pe PS2.
+    int h = ((x >> 4) * 37 + (y >> 4) * 17) & 7;
+    switch(tile) {
+        case TILE_GRASS:
+            if (h == 0) {
+                draw_rect(g, x+3, y+4, 2, 2, GS_SETREG_RGBAQ(70,150,45,0x80,0));
+                draw_rect(g, x+10, y+11, 2, 2, GS_SETREG_RGBAQ(35,120,30,0x80,0));
+            } else if (h == 3) {
+                draw_rect(g, x+6, y+8, 2, 2, GS_SETREG_RGBAQ(80,160,55,0x80,0));
+            }
+            break;
+        case TILE_DIRT:
+            if (h < 3) draw_rect(g, x+4+h, y+5, 4, 2, GS_SETREG_RGBAQ(110,70,35,0x80,0));
+            break;
+        case TILE_SAND:
+            if (h < 3) draw_rect(g, x+3+h*3, y+4+h, 2, 2, GS_SETREG_RGBAQ(245,225,130,0x80,0));
+            break;
+        case TILE_WATER:
+            draw_rect(g, x, y, s, 2, GS_SETREG_RGBAQ(70,100,230,0x80,0));
+            if (h < 4) draw_rect(g, x+3+h*2, y+7, 5, 1, GS_SETREG_RGBAQ(90,140,255,0x80,0));
+            break;
+        case TILE_STONE:
+        case TILE_HARDROCK:
+            draw_rect(g, x, y, s, 2, GS_SETREG_RGBAQ(190,190,190,0x80,0));
+            if (h < 3) draw_rect(g, x+3+h*2, y+9, 5, 2, GS_SETREG_RGBAQ(100,100,100,0x80,0));
+            break;
+        case TILE_TREE:
+            draw_rect(g, x+6, y+8, 4, 8, COL_BROWN);
+            draw_rect(g, x+2, y+2, 12, 10, GS_SETREG_RGBAQ(35,145,35,0x80,0));
+            draw_rect(g, x+5, y, 8, 8, GS_SETREG_RGBAQ(55,175,55,0x80,0));
+            break;
+        case TILE_WORKBENCH:
+            draw_rect(g, x+2, y+2, 12, 12, GS_SETREG_RGBAQ(170,105,45,0x80,0));
+            draw_rect(g, x+2, y+7, 12, 2, GS_SETREG_RGBAQ(90,55,25,0x80,0));
+            draw_rect(g, x+7, y+2, 2, 12, GS_SETREG_RGBAQ(90,55,25,0x80,0));
+            break;
+        case TILE_FURNACE:
+            draw_rect(g, x+3, y+3, 10, 10, COL_DARK_GRAY);
+            draw_rect(g, x+5, y+6, 6, 4, COL_BLACK);
+            break;
+        case TILE_STAIRS_DOWN:
+        case TILE_STAIRS_UP:
+            draw_rect(g, x+3, y+4, 10, 2, COL_BROWN);
+            draw_rect(g, x+5, y+8, 8, 2, COL_BROWN);
+            draw_rect(g, x+7, y+12, 6, 2, COL_BROWN);
+            break;
+        default:
+            break;
+    }
 }
 
 // ---- ENTITY RENDERER ----
@@ -484,11 +534,18 @@ void game_render(GameState *gs, GSGLOBAL *g) {
         Entity *p = &gs->player;
         int sx2 = p->x - gs->camX + SCREEN_W/2;
         int sy2 = p->y - gs->camY + (SCREEN_H-40)/2;
-        u64 bodyCol = (p->hurtTime > 0 && (p->hurtTime & 2)) ? COL_RED : COL_WHITE;
-        draw_rect(g, sx2-4, sy2-6, 8, 12, bodyCol);
-        draw_rect(g, sx2-4, sy2-14, 8, 10, GS_SETREG_RGBAQ(220,180,140,0x80,0));
-        draw_rect(g, sx2-2, sy2-12, 2, 2, COL_BLACK);
-        draw_rect(g, sx2+1, sy2-12, 2, 2, COL_BLACK);
+        u64 shirtCol = (p->hurtTime > 0 && (p->hurtTime & 2)) ? COL_RED : GS_SETREG_RGBAQ(70,120,220,0x80,0);
+        u64 skinCol = GS_SETREG_RGBAQ(220,180,140,0x80,0);
+        draw_rect(g, sx2-5, sy2-5, 10, 11, shirtCol);
+        draw_rect(g, sx2-4, sy2+5, 3, 5, GS_SETREG_RGBAQ(45,65,130,0x80,0));
+        draw_rect(g, sx2+1, sy2+5, 3, 5, GS_SETREG_RGBAQ(45,65,130,0x80,0));
+        draw_rect(g, sx2-5, sy2-14, 10, 9, skinCol);
+        draw_rect(g, sx2-5, sy2-15, 10, 3, GS_SETREG_RGBAQ(70,45,20,0x80,0));
+        draw_rect(g, sx2-2, sy2-11, 2, 2, COL_BLACK);
+        draw_rect(g, sx2+2, sy2-11, 2, 2, COL_BLACK);
+        if (p->dir == DIR_LEFT)  draw_rect(g, sx2-6, sy2-1, 2, 4, skinCol);
+        if (p->dir == DIR_RIGHT) draw_rect(g, sx2+4, sy2-1, 2, 4, skinCol);
+        if (p->dir == DIR_UP)    draw_rect(g, sx2-3, sy2-15, 6, 2, GS_SETREG_RGBAQ(45,30,15,0x80,0));
     }
 
     // HUD
