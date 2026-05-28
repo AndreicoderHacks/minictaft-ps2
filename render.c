@@ -172,6 +172,72 @@ u64 item_getColor(int item) {
     }
 }
 
+static void draw_item_icon(GSGLOBAL *g, int item, int x, int y) {
+    u64 c = item_getColor(item);
+    switch(item) {
+        case ITEM_WOOD:
+            draw_rect(g, x+2, y+2, 12, 12, c);
+            draw_rect(g, x+2, y+6, 12, 2, GS_SETREG_RGBAQ(90,55,25,0x80,0));
+            draw_rect(g, x+7, y+2, 2, 12, GS_SETREG_RGBAQ(170,105,45,0x80,0));
+            break;
+        case ITEM_STONE:
+            draw_rect(g, x+2, y+4, 12, 9, c);
+            draw_rect(g, x+4, y+3, 8, 2, GS_SETREG_RGBAQ(190,190,190,0x80,0));
+            break;
+        case ITEM_APPLE:
+            draw_rect(g, x+4, y+5, 8, 8, COL_RED);
+            draw_rect(g, x+7, y+3, 2, 3, COL_BROWN);
+            draw_rect(g, x+9, y+4, 3, 2, COL_GREEN);
+            break;
+        case ITEM_BREAD:
+            draw_rect(g, x+3, y+6, 10, 6, c);
+            draw_rect(g, x+5, y+4, 6, 3, GS_SETREG_RGBAQ(230,180,95,0x80,0));
+            break;
+        case ITEM_WOOD_TOOL:
+        case ITEM_STONE_TOOL:
+        case ITEM_IRON_TOOL:
+        case ITEM_GOLD_TOOL:
+        case ITEM_GEM_TOOL:
+            draw_rect(g, x+3, y+4, 10, 3, c);
+            draw_rect(g, x+7, y+6, 3, 8, COL_BROWN);
+            break;
+        case ITEM_WOOD_SWORD:
+        case ITEM_STONE_SWORD:
+        case ITEM_IRON_SWORD:
+        case ITEM_GOLD_SWORD:
+        case ITEM_GEM_SWORD:
+            draw_rect(g, x+7, y+2, 3, 10, c);
+            draw_rect(g, x+4, y+10, 9, 2, COL_BROWN);
+            draw_rect(g, x+7, y+12, 3, 3, COL_BROWN);
+            break;
+        case ITEM_WORKBENCH:
+            draw_rect(g, x+2, y+2, 12, 12, COL_BROWN);
+            draw_rect(g, x+2, y+7, 12, 2, GS_SETREG_RGBAQ(90,55,25,0x80,0));
+            draw_rect(g, x+7, y+2, 2, 12, GS_SETREG_RGBAQ(90,55,25,0x80,0));
+            break;
+        case ITEM_FURNACE:
+            draw_rect(g, x+2, y+2, 12, 12, COL_STONE_COL);
+            draw_rect(g, x+4, y+5, 8, 5, COL_BLACK);
+            break;
+        case ITEM_BED:
+            draw_rect(g, x+2, y+5, 12, 7, GS_SETREG_RGBAQ(170,40,55,0x80,0));
+            draw_rect(g, x+2, y+3, 5, 4, COL_WHITE);
+            draw_rect(g, x+2, y+12, 12, 2, COL_BROWN);
+            break;
+        default:
+            draw_rect(g, x+3, y+3, 10, 10, c);
+            break;
+    }
+}
+
+static void draw_count(GSGLOBAL *g, int count, int x, int y) {
+    if (count <= 1) return;
+    char buf[4];
+    if (count > 99) count = 99;
+    sprintf(buf, "%d", count);
+    draw_text(g, buf, x, y, COL_WHITE);
+}
+
 // ---- TILE RENDERER ----
 void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
     int x = px, y = py, s = TILE_SIZE;
@@ -273,6 +339,8 @@ void render_entity(GSGLOBAL *g, Entity *e, int camX, int camY) {
     u64 mainColor;
     int isHurt = (e->hurtTime > 0 && (e->hurtTime & 2));
 
+    draw_rect(g, sx-6, sy+5, 12, 3, GS_SETREG_RGBAQ(0,0,0,0x50,0));
+
     switch(e->type) {
         case ENT_ZOMBIE:
             mainColor = isHurt ? COL_RED : GS_SETREG_RGBAQ(40,120,40,0x80,0);
@@ -327,7 +395,8 @@ void render_hud(GSGLOBAL *g, GameState *gs) {
         draw_rect(g, sx, sy, 22, 22, slotCol);
         draw_rect(g, sx+1, sy+1, 20, 20, COL_BLACK);
         if (gs->inventory[i].type != ITEM_NONE) {
-            draw_rect(g, sx+3, sy+3, 14, 14, item_getColor(gs->inventory[i].type));
+            draw_item_icon(g, gs->inventory[i].type, sx+3, sy+3);
+            draw_count(g, gs->inventory[i].count, sx+12, sy+14);
         }
     }
 
@@ -354,7 +423,9 @@ void render_inventory(GSGLOBAL *g, GameState *gs) {
         if (gs->inventory[i].type != ITEM_NONE) {
             if (i == gs->selectedSlot)
                 draw_rect(g, 110, sy2, 420, 20, GS_SETREG_RGBAQ(0,80,0,0x80,0));
-            draw_text(g, item_getName(gs->inventory[i].type), 120, sy2+4, COL_WHITE);
+            draw_item_icon(g, gs->inventory[i].type, 120, sy2+2);
+            draw_text(g, item_getName(gs->inventory[i].type), 145, sy2+4, COL_WHITE);
+            draw_count(g, gs->inventory[i].count, 470, sy2+4);
         } else {
             if (i == gs->selectedSlot)
                 draw_rect(g, 110, sy2, 420, 20, GS_SETREG_RGBAQ(40,40,0,0x80,0));
@@ -529,6 +600,27 @@ void game_render(GameState *gs, GSGLOBAL *g) {
         }
     }
 
+    // Cursor pe blocul din fata playerului: vezi exact ce minezi/plasezi.
+    {
+        int tx = gs->player.x / TILE_SIZE;
+        int ty = gs->player.y / TILE_SIZE;
+        switch(gs->player.dir) {
+            case DIR_UP:    ty--; break;
+            case DIR_DOWN:  ty++; break;
+            case DIR_LEFT:  tx--; break;
+            case DIR_RIGHT: tx++; break;
+        }
+        if (tx >= 0 && tx < WORLD_W && ty >= 0 && ty < WORLD_H) {
+            int cx = tx * TILE_SIZE - gs->camX + SCREEN_W/2;
+            int cy = ty * TILE_SIZE - gs->camY + (SCREEN_H-40)/2;
+            u64 cc = (gs->tickCount & 16) ? COL_YELLOW : COL_WHITE;
+            draw_rect(g, cx, cy, TILE_SIZE, 1, cc);
+            draw_rect(g, cx, cy+TILE_SIZE-1, TILE_SIZE, 1, cc);
+            draw_rect(g, cx, cy, 1, TILE_SIZE, cc);
+            draw_rect(g, cx+TILE_SIZE-1, cy, 1, TILE_SIZE, cc);
+        }
+    }
+
     // Entities
     for (int i = 0; i < gs->entityCount; i++) {
         Entity *e = &gs->entities[i];
@@ -543,6 +635,7 @@ void game_render(GameState *gs, GSGLOBAL *g) {
         int sy2 = p->y - gs->camY + (SCREEN_H-40)/2;
         u64 shirtCol = (p->hurtTime > 0 && (p->hurtTime & 2)) ? COL_RED : GS_SETREG_RGBAQ(70,120,220,0x80,0);
         u64 skinCol = GS_SETREG_RGBAQ(220,180,140,0x80,0);
+        draw_rect(g, sx2-7, sy2+8, 14, 3, GS_SETREG_RGBAQ(0,0,0,0x50,0));
         draw_rect(g, sx2-5, sy2-5, 10, 11, shirtCol);
         draw_rect(g, sx2-4, sy2+5, 3, 5, GS_SETREG_RGBAQ(45,65,130,0x80,0));
         draw_rect(g, sx2+1, sy2+5, 3, 5, GS_SETREG_RGBAQ(45,65,130,0x80,0));
