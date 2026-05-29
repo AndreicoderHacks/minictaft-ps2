@@ -1,7 +1,7 @@
 EE_BIN = minicraft.elf
 
 SRCS = main.c world.c player.c entity.c \
-       render.c input.c crafting.c particles.c
+       render.c input.c crafting.c particles.c texture.c
 
 OBJS = $(SRCS:.c=.o)
 

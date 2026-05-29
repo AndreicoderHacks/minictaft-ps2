@@ -111,6 +111,8 @@ int main(void) {
     gsKit_init_screen(gsGlobal);
     gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
+    atlas_load(gsGlobal);
+
     input_init();
     rng_seed(0xCAFE1234);
     game_init(&gs);

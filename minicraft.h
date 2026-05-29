@@ -336,4 +336,9 @@ int brightness_day(int dayTime);
 const char* item_getName(int item);
 u64  item_getColor(int item);
 
+// texture atlas
+extern GSTEXTURE *g_atlas;
+void atlas_load(GSGLOBAL *gsGlobal);
+void draw_sprite(GSGLOBAL *g, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
+
 #endif // MINICRAFT_H

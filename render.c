@@ -249,103 +249,58 @@ static void draw_count(GSGLOBAL *g, int count, int x, int y) {
 
 // ---- TILE RENDERER ----
 void render_tile(GSGLOBAL *g, int tile, int px, int py, int bright) {
-    int x = px, y = py, s = TILE_SIZE;
-    u64 col;
+    int s = TILE_SIZE;
 
-    switch(tile) {
-        case TILE_GRASS:     col = (bright < 70) ? GS_SETREG_RGBAQ(8,45,18,0x80,0) : COL_DARK_GREEN; break;
-        case TILE_DIRT:      col = (bright < 70) ? GS_SETREG_RGBAQ(70,45,30,0x80,0) : COL_DIRT_COL;   break;
-        case TILE_SAND:      col = (bright < 70) ? GS_SETREG_RGBAQ(105,95,65,0x80,0) : COL_SAND;      break;
-        case TILE_WATER:     col = (bright < 70) ? GS_SETREG_RGBAQ(15,30,95,0x80,0) : COL_BLUE;       break;
-        case TILE_LAVA:      col = COL_LAVA_COL;    break;
-        case TILE_STONE:     col = (bright < 70) ? GS_SETREG_RGBAQ(75,75,85,0x80,0) : COL_STONE_COL;  break;
-        case TILE_HARDROCK:  col = COL_DARK_GRAY;   break;
-        case TILE_TREE:      col = (bright < 70) ? GS_SETREG_RGBAQ(15,70,20,0x80,0) : COL_GREEN;      break;
-        case TILE_WOOD:      col = COL_BROWN;        break;
-        case TILE_ROCK_ORE:  col = COL_GRAY;         break;
-        case TILE_IRON_ORE:  col = GS_SETREG_RGBAQ(200,160,120,0x80,0); break;
-        case TILE_GOLD_ORE:  col = COL_YELLOW;       break;
-        case TILE_GEM_ORE:   col = COL_CYAN;         break;
-        case TILE_STAIRS_DOWN: col = GS_SETREG_RGBAQ(180,140,80,0x80,0); break;
-        case TILE_STAIRS_UP:   col = GS_SETREG_RGBAQ(220,200,120,0x80,0); break;
-        case TILE_HOLE:      col = COL_BLACK;        break;
-        case TILE_WORKBENCH: col = COL_BROWN;        break;
-        case TILE_FURNACE:   col = COL_STONE_COL;    break;
-        case TILE_DOOR:      col = COL_BROWN;        break;
-        case TILE_TORCH:     col = COL_DIRT_COL;     break;
-        case TILE_FARMLAND:  col = GS_SETREG_RGBAQ(100,60,20,0x80,0); break;
-        case TILE_WHEAT:     col = COL_YELLOW;       break;
-        case TILE_PORTAL:    col = COL_PURPLE;       break;
-        case TILE_CLOUD:     col = COL_WHITE;        break;
-        default:             col = COL_DARK_GRAY;    break;
+    // Animatie apa
+    static int waterFrame = 0;
+    static int animTimer  = 0;
+    if (++animTimer > 18) { animTimer = 0; waterFrame ^= 1; }
+
+    if (g_atlas) {
+        switch(tile) {
+            case TILE_GRASS:      draw_sprite(g, 48,  48,16,16, px,py,s,s); break;
+            case TILE_DIRT:       draw_sprite(g,  0,  32,16,16, px,py,s,s); break;
+            case TILE_SAND:       draw_sprite(g, 96,   0,16,16, px,py,s,s); break;
+            case TILE_WATER:      draw_sprite(g, 80+waterFrame*16, 48,16,16, px,py,s,s); break;
+            case TILE_LAVA:       draw_sprite(g, 80,  64,16,16, px,py,s,s); break;
+            case TILE_STONE:      draw_sprite(g,  0,   0,16,16, px,py,s,s); break;
+            case TILE_HARDROCK:   draw_sprite(g, 32,   0,16,16, px,py,s,s); break;
+            case TILE_TREE:       draw_sprite(g, 96,  64,16,16, px,py,s,s); break;
+            case TILE_ROCK_ORE:   draw_sprite(g, 32,  32,16,16, px,py,s,s); break;
+            case TILE_IRON_ORE:   draw_sprite(g,144,  16,16,16, px,py,s,s); break;
+            case TILE_GOLD_ORE:   draw_sprite(g, 80,  16,16,16, px,py,s,s); break;
+            case TILE_GEM_ORE:    draw_sprite(g,176,  16,16,16, px,py,s,s); break;
+            case TILE_STAIRS_DOWN:draw_sprite(g, 48,  16,16,16, px,py,s,s); break;
+            case TILE_STAIRS_UP:  draw_sprite(g, 64,  16,16,16, px,py,s,s); break;
+            case TILE_WORKBENCH:  draw_sprite(g,352,   0,16,16, px,py,s,s); break;
+            case TILE_FURNACE:    draw_sprite(g,368,   0,16,16, px,py,s,s); break;
+            case TILE_WHEAT:      draw_sprite(g,112,  48,16,16, px,py,s,s); break;
+            case TILE_FARMLAND:   draw_sprite(g, 96,  48,16,16, px,py,s,s); break;
+            case TILE_PORTAL:     draw_sprite(g,192,  48,16,16, px,py,s,s); break;
+            case TILE_CLOUD:      draw_sprite(g,208,  48,16,16, px,py,s,s); break;
+            case TILE_HOLE:       draw_rect(g, px,py,s,s, COL_BLACK); break;
+            default:              draw_sprite(g,  0,   0,16,16, px,py,s,s); break;
+        }
+    } else {
+        u64 col;
+        switch(tile) {
+            case TILE_GRASS:     col = COL_DARK_GREEN; break;
+            case TILE_DIRT:      col = COL_DIRT_COL;   break;
+            case TILE_SAND:      col = COL_SAND;        break;
+            case TILE_WATER:     col = COL_BLUE;        break;
+            case TILE_LAVA:      col = COL_LAVA_COL;    break;
+            case TILE_STONE:     col = COL_STONE_COL;   break;
+            case TILE_HARDROCK:  col = COL_DARK_GRAY;   break;
+            case TILE_TREE:      col = COL_GREEN;        break;
+            default:             col = COL_DARK_GRAY;    break;
+        }
+        draw_rect(g, px, py, s, s, col);
     }
 
-    draw_rect(g, x, y, s, s, col);
-
-    // Detalii pixel-art ieftine. Sunt intentionat putine, ca sa ramana stabil pe PS2.
-    int h = ((x >> 4) * 37 + (y >> 4) * 17) & 7;
-    switch(tile) {
-        case TILE_GRASS:
-            if (h == 0) {
-                draw_rect(g, x+3, y+4, 2, 2, GS_SETREG_RGBAQ(70,150,45,0x80,0));
-                draw_rect(g, x+10, y+11, 2, 2, GS_SETREG_RGBAQ(35,120,30,0x80,0));
-            } else if (h == 3) {
-                draw_rect(g, x+6, y+8, 2, 2, GS_SETREG_RGBAQ(80,160,55,0x80,0));
-            }
-            break;
-        case TILE_DIRT:
-            if (h < 3) draw_rect(g, x+4+h, y+5, 4, 2, GS_SETREG_RGBAQ(110,70,35,0x80,0));
-            break;
-        case TILE_SAND:
-            if (h < 3) draw_rect(g, x+3+h*3, y+4+h, 2, 2, GS_SETREG_RGBAQ(245,225,130,0x80,0));
-            break;
-        case TILE_WATER:
-            draw_rect(g, x, y, s, 2, GS_SETREG_RGBAQ(70,100,230,0x80,0));
-            if (h < 4) draw_rect(g, x+3+h*2, y+7, 5, 1, GS_SETREG_RGBAQ(90,140,255,0x80,0));
-            break;
-        case TILE_STONE:
-        case TILE_HARDROCK:
-            draw_rect(g, x, y, s, 2, GS_SETREG_RGBAQ(190,190,190,0x80,0));
-            if (h < 3) draw_rect(g, x+3+h*2, y+9, 5, 2, GS_SETREG_RGBAQ(100,100,100,0x80,0));
-            break;
-        case TILE_TREE:
-            draw_rect(g, x+6, y+8, 4, 8, COL_BROWN);
-            draw_rect(g, x+2, y+2, 12, 10, GS_SETREG_RGBAQ(35,145,35,0x80,0));
-            draw_rect(g, x+5, y, 8, 8, GS_SETREG_RGBAQ(55,175,55,0x80,0));
-            break;
-        case TILE_WOOD:
-            draw_rect(g, x, y+3, s, 2, GS_SETREG_RGBAQ(95,55,25,0x80,0));
-            draw_rect(g, x, y+10, s, 2, GS_SETREG_RGBAQ(95,55,25,0x80,0));
-            draw_rect(g, x+6, y, 2, s, GS_SETREG_RGBAQ(170,105,45,0x80,0));
-            break;
-        case TILE_WORKBENCH:
-            draw_rect(g, x+2, y+2, 12, 12, GS_SETREG_RGBAQ(170,105,45,0x80,0));
-            draw_rect(g, x+2, y+7, 12, 2, GS_SETREG_RGBAQ(90,55,25,0x80,0));
-            draw_rect(g, x+7, y+2, 2, 12, GS_SETREG_RGBAQ(90,55,25,0x80,0));
-            break;
-        case TILE_FURNACE:
-            draw_rect(g, x+3, y+3, 10, 10, COL_DARK_GRAY);
-            draw_rect(g, x+5, y+6, 6, 4, COL_BLACK);
-            break;
-        case TILE_DOOR:
-            draw_rect(g, x+4, y+1, 8, 14, COL_BROWN);
-            draw_rect(g, x+10, y+8, 2, 2, COL_YELLOW);
-            break;
-        case TILE_TORCH:
-            draw_rect(g, x+7, y+5, 2, 10, COL_BROWN);
-            draw_rect(g, x+5, y+2, 6, 5, COL_ORANGE);
-            draw_rect(g, x+4, y+1, 8, 2, COL_YELLOW);
-            break;
-        case TILE_STAIRS_DOWN:
-        case TILE_STAIRS_UP:
-            draw_rect(g, x+3, y+4, 10, 2, COL_BROWN);
-            draw_rect(g, x+5, y+8, 8, 2, COL_BROWN);
-            draw_rect(g, x+7, y+12, 6, 2, COL_BROWN);
-            break;
-        default:
-            break;
-    }
+    if (bright < 70)
+        draw_rect(g, px, py, s, s, GS_SETREG_RGBAQ(0,0,0,0x60,0));
 }
+
 
 // ---- ENTITY RENDERER ----
 void render_entity(GSGLOBAL *g, Entity *e, int camX, int camY) {
